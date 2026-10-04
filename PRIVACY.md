@@ -4,7 +4,7 @@ Headroom's goal is local private processing, explicit provider connections and n
 
 ## Data on this Mac
 
-API credentials are stored in the system Keychain and kept out of wallet JSON. Wallet records, API cost reports, local budget targets, recovery records and backups contain private account labels and observations. The app restricts its storage directory to mode `0700` and its data files to `0600`, repairs older modes and rejects substituted symlinks. POSIX modes do not remove existing ACL grants, encrypt the files or defend against a compromised user account or administrator.
+API credentials are stored in the system Keychain and kept out of wallet JSON. Wallet records, API cost reports, local budget targets, recovery records and backups contain private account labels and observations. The app restricts its storage directory to mode `0700` and its data files to `0600`, repairs older modes and rejects substituted symlinks. Exported backups are also set to `0600` where the destination volume supports POSIX modes. POSIX modes do not remove existing ACL grants, encrypt the files or defend against a compromised user account or administrator.
 
 Appearance and connection flags use local preferences. A Debug fixture launch uses a fresh separate preference suite, temporary wallet folder and in-memory credentials. Normal Demo Mode shows synthetic data, but a normal app may have loaded private state before demo was selected. Use the explicit fixture launch for evidence capture.
 

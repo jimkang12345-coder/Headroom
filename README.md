@@ -6,7 +6,7 @@ This is an early development build. Its home screen and menu bar prioritize Code
 
 ## Build on Mac
 
-Requires macOS 14 or later, Xcode with the macOS SDK, Python 3 and command-line developer tools. The shared package uses Swift 6. No third-party Swift package dependencies are required.
+Requires macOS 14 or later, Xcode with the macOS SDK, Python 3 and command-line developer tools. The shared package uses Swift 6. No third-party Swift package dependencies are required. The Claude Code feed uses jq, which macOS 15 and later include; on macOS 14, install it with `brew install jq`.
 
 ```sh
 ./script/build_and_run.sh --mac --build-only

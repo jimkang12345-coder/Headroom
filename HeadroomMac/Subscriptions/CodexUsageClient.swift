@@ -24,6 +24,11 @@ enum CodexUsageClient {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = ["app-server"]
+        // Apps opened from Finder get a minimal PATH; an npm-installed codex needs `node` beside it.
+        var environment = ProcessInfo.processInfo.environment
+        let toolDirectories = [(executable as NSString).deletingLastPathComponent, "/opt/homebrew/bin", "/usr/local/bin"]
+        environment["PATH"] = (toolDirectories + [environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"]).joined(separator: ":")
+        process.environment = environment
         let input = Pipe(), output = Pipe()
         process.standardInput = input
         process.standardOutput = output

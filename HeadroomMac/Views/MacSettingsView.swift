@@ -130,6 +130,8 @@ struct MacSettingsView: View {
             savePanel.nameFieldStringValue = "Headroom-Snapshot-\(Int(Date().timeIntervalSince1970)).json"
             if savePanel.runModal() == .OK, let url = savePanel.url {
                 try data.write(to: url)
+                // Backups hold private observations; keep them owner-only where the volume supports it.
+                try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
                 exportStatusMessage = "Exported successfully to \(url.lastPathComponent)"
             }
         } catch {
