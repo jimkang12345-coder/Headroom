@@ -110,10 +110,22 @@ struct WebsiteSessionRegression {
             progress("CHECK: \(phase)")
             var verificationStore: WKWebsiteDataStore? = WKWebsiteDataStore(forIdentifier: identifier)
             let retained = await hasSyntheticCookie(in: verificationStore!)
-            verificationStore = nil
             guard !retained else { throw RegressionFailure.assertion("Owned session cookie survived deletion") }
-            // Reading a fresh empty store does not materialize a profile directory
-            // on every macOS version. Cleanup handles confirmed absence explicitly.
+            // An empty read can expose a transient profile directory on macOS 15.
+            // Materialize a different synthetic cookie before releasing this store,
+            // matching the registered, seeded lifecycle verified by the first delete.
+            // The original cookie's absence has already been asserted above.
+            phase = "materialize reopened owned profile for cleanup"
+            progress("CHECK: \(phase)")
+            let cleanupCookieName = "headroom-cleanup-regression"
+            await seedSyntheticCookie(in: verificationStore!, name: cleanupCookieName)
+            guard await hasSyntheticCookie(in: verificationStore!, name: cleanupCookieName) else {
+                throw RegressionFailure.assertion("Fresh synthetic cleanup cookie was not available")
+            }
+            guard await ClaudeWebsiteClient.persistentStoreExists(identifier) else {
+                throw RegressionFailure.assertion("Reopened seeded website profile was not registered on disk")
+            }
+            verificationStore = nil
             phase = "clean up reopened owned profile"
             progress("CHECK: \(phase)")
             try await ClaudeWebsiteClient.removePersistentStore(identifier)
@@ -141,9 +153,9 @@ struct WebsiteSessionRegression {
     }
 
     @MainActor
-    private static func seedSyntheticCookie(in store: WKWebsiteDataStore) async {
+    private static func seedSyntheticCookie(in store: WKWebsiteDataStore, name: String = "headroom-regression") async {
         let cookie = HTTPCookie(properties: [.domain: "example.invalid", .path: "/",
-                                           .name: "headroom-regression", .value: "synthetic-only",
+                                           .name: name, .value: "synthetic-only",
                                            .secure: "TRUE", .expires: Date().addingTimeInterval(3600)])!
         await withCheckedContinuation { continuation in
             store.httpCookieStore.setCookie(cookie) { continuation.resume() }
@@ -151,10 +163,10 @@ struct WebsiteSessionRegression {
     }
 
     @MainActor
-    private static func hasSyntheticCookie(in store: WKWebsiteDataStore) async -> Bool {
+    private static func hasSyntheticCookie(in store: WKWebsiteDataStore, name: String = "headroom-regression") async -> Bool {
         return await withCheckedContinuation { continuation in
             store.httpCookieStore.getAllCookies { cookies in
-                continuation.resume(returning: cookies.contains { $0.name == "headroom-regression" })
+                continuation.resume(returning: cookies.contains { $0.name == name })
             }
         }
     }
