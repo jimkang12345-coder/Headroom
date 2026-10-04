@@ -433,6 +433,9 @@ public final class AppStorageManager: @unchecked Sendable {
                   let localMapping = foreignToLocalConnMap[obsDTO.connectionId.lowercased()] else {
                 throw StorageError.invalidSnapshot(reason: "Invalid observation mapping")
             }
+            guard localMapping.provider.kind == .wallet else {
+                throw StorageError.invalidSnapshot(reason: "Wallet observation requires a wallet provider")
+            }
 
             let currencies = obsDTO.balances.map { $0.currency }
             guard Set(currencies).count == currencies.count,
@@ -470,6 +473,28 @@ public final class AppStorageManager: @unchecked Sendable {
             let matchingObs = observationsByLocalConnId[mapping.localConnId] ?? []
             let latestObs = matchingObs.max(by: { $0.capturedAt < $1.capturedAt })
 
+            let budget = try dto.monthlyBudget.map { try CurrencyBalance.parseDecimalStrict($0, fieldName: "monthly_budget") }
+            if let budget, budget <= 0 { throw StorageError.invalidSnapshot(reason: "Invalid monthly budget") }
+            var cost: APICostObservation?
+            if let foreign = dto.apiCost {
+                guard mapping.provider == .openai || mapping.provider == .anthropic,
+                      foreign.providerId == mapping.provider,
+                      foreign.connectionId.uuidString.lowercased() == dto.id.lowercased(),
+                      foreign.currency == "USD", !foreign.amount.isNaN,
+                      foreign.periodStart < foreign.periodEnd,
+                      foreign.periodEnd <= foreign.capturedAt,
+                      foreign.capturedAt <= maxAllowedFuture,
+                      foreign.capturedAt >= mapping.created.addingTimeInterval(-300),
+                      foreign.reportedThrough >= foreign.periodStart,
+                      foreign.reportedThrough <= foreign.periodEnd,
+                      matchingObs.isEmpty else {
+                    throw StorageError.invalidSnapshot(reason: "Invalid API cost report")
+                }
+                cost = APICostObservation(connectionId: mapping.localConnId, generationId: mapping.generation,
+                    providerId: mapping.provider, amount: foreign.amount, currency: foreign.currency,
+                    periodStart: foreign.periodStart, periodEnd: foreign.periodEnd,
+                    capturedAt: foreign.capturedAt, reportedThrough: foreign.reportedThrough)
+            }
             let connection = Connection(
                 id: mapping.localConnId,
                 credentialId: mapping.localCredId,
@@ -481,6 +506,8 @@ public final class AppStorageManager: @unchecked Sendable {
                 lastAttemptedRefresh: mapping.lastAttempt,
                 lastSuccessfulRefresh: latestObs?.capturedAt ?? mapping.lastSuccess,
                 lastObservation: latestObs,
+                lastAPICostObservation: cost,
+                monthlyBudget: budget,
                 state: .awaitingVerification(reason: .importedFromBackup)
             )
             restoredConnections.append(connection)

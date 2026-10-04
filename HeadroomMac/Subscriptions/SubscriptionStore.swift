@@ -5,6 +5,7 @@ import HeadroomCore
 
 @MainActor
 final class SubscriptionStore: ObservableObject {
+    @Published private(set) var isSyntheticMode = false
     @Published var codex: SubscriptionUsage?
     @Published var claude: SubscriptionUsage?
     @Published var codexMessage: String?
@@ -46,7 +47,9 @@ final class SubscriptionStore: ObservableObject {
         }
         claudeWebsite.onStatus = { [weak self] message in self?.claudeMessage = message }
         timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect().sink { [weak self] _ in
-            guard let self, !self.suspended, !self.sleeping else { return }
+            guard let self else { return }
+            if self.isSyntheticMode { self.displayTime = Date(); return }
+            guard !self.suspended, !self.sleeping else { return }
             self.displayTime = Date()
             // Feed ingestion must not wait on a slow Codex network request.
             if self.claudeConnected && !self.claudeUsesWebsite { self.readClaude() }
@@ -72,6 +75,27 @@ final class SubscriptionStore: ObservableObject {
                 Task { await self?.refresh() }
             }.store(in: &lifecycle)
     }
+    func setSyntheticMode(_ enabled: Bool) {
+        guard isSyntheticMode != enabled else {
+            if !enabled { setSuspended(false) }
+            return
+        }
+        if enabled {
+            setSuspended(true)
+            isSyntheticMode = true
+            let anchor = Date()
+            displayTime = anchor
+            codex = SubscriptionFixtures.codex(at: anchor)
+            claude = SubscriptionFixtures.claudeCode(at: anchor)
+            codexMessage = nil
+            claudeMessage = nil
+        } else {
+            isSyntheticMode = false
+            codex = nil; claude = nil
+            setSuspended(false)
+        }
+    }
+
     func setSuspended(_ value: Bool) {
         guard suspended != value else { return }
         suspended = value
@@ -183,6 +207,7 @@ final class SubscriptionStore: ObservableObject {
         }
     }
     func freshness(_ usage: SubscriptionUsage, isClaude: Bool) -> String {
+        if isSyntheticMode { return "Synthetic sample · no provider connection" }
         let age = max(0, displayTime.timeIntervalSince(usage.observedAt))
         let resetPassed = usage.windows.contains { $0.resetsAt.map { $0 <= displayTime } ?? false }
         if resetPassed { return "Reset passed · awaiting provider update" }

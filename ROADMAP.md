@@ -1,19 +1,21 @@
 # Mac roadmap
 
-## Current work
+Headroom primarily tracks **Codex and Claude Code subscription limits**. Quota windows, remaining capacity, resets, source health and freshness drive the default home and menu bar. API spend/balance trackers are optional additions, never a requirement for using subscription tracking.
 
-- Publish reviewed reusable source under MIT, with no private workspace records or old build evidence.
-- Strengthen local storage permissions and symlink handling.
-- Make Claude website disconnect erase the dedicated sign-in session, with visible retry behavior.
-- Restrict embedded navigation and make demo preferences independent of normal connection flags.
-- Explain provider requests and private backup contents in the app.
+## Implemented
+
+- Limits-first Mac home/sidebar and menu summaries for Codex and Claude Code.
+- Claude Code local feed as the primary connection; Claude website as an explicit alternative.
+- Optional OpenAI/Anthropic organization cost reports and local monthly targets; DeepSeek wallet balances.
+- Reviewed MIT public source, private local storage modes and Claude website-session cleanup/retry.
+- Offline synthetic limits and API fixtures, private backup guidance and automated Mac checks.
 
 ## Next
 
-1. Validate actual provider/client network destinations and Keychain migration behavior; investigate an App Sandbox compatible CLI helper.
-2. Build a versioned minimal widget summary and local cache, then add native configurable Mac widgets.
-3. Offer single-account, comparison and privacy layouts, with observation age and honest reset behavior. Widgets must never contain credentials or fabricate refills.
-4. Add local threshold reminders, quiet hours, bounded optional history and appearance-only templates with synthetic previews.
-5. Verify signed/notarized distribution and the exact release contents before distributing binaries.
+1. Improve Codex/Claude Code account-change detection, multi-session behavior and connection diagnostics; verify live provider/client behavior without inventing missing limits.
+2. Add a credential-free local summary cache, then configurable native Mac widgets prioritizing Codex and Claude Code quota windows, resets and observation age.
+3. Add local low-headroom alerts, quiet hours and bounded optional quota history. Never fabricate a refill when a reset timer expires.
+4. Keep API extras easy to add; improve reporting coverage and credential guidance independently of subscription tracking. Local targets remain comparison values rather than hard caps.
+5. Review an App Sandbox compatible CLI/helper architecture and Keychain migration, then signed/notarized distribution and exact release contents.
 
-iPhone development, device pairing and cloud synchronization are deferred. Mac widgets are planned, not completed. The maintainer's online development journal contains curated product records; it is separate from the app and receives no user data from the app.
+iPhone development, device pairing and cloud synchronization are deferred. Native widgets are planned. The online maintainer journal holds curated product records; the app uploads no user data to it.

@@ -5,6 +5,7 @@ public enum CoordinatorError: Error, LocalizedError, Equatable {
     case demoModeActive
     case unsupportedProvider
     case missingCredential
+    case invalidBudget
     case connectionNotFound
     case pendingRecovery
     case rateLimited(retryAfter: Date)
@@ -19,6 +20,8 @@ public enum CoordinatorError: Error, LocalizedError, Equatable {
             return "Provider is not yet supported in this version."
         case .missingCredential:
             return "No API key found for this connection."
+        case .invalidBudget:
+            return "Enter a positive monthly budget in USD, or leave it blank."
         case .connectionNotFound:
             return "Connection not found."
         case .pendingRecovery:
@@ -43,10 +46,15 @@ public enum AcquisitionTrigger: Sendable, Equatable {
     case explicitRecovery
 }
 
+private enum APIReading: Sendable {
+    case wallet(WalletObservation)
+    case cost(APICostObservation)
+}
+
 private struct ActiveOperation {
     let operationId: UUID
     let generationId: ConnectionGenerationID
-    let task: Task<WalletObservation, Error>
+    let task: Task<APIReading, Error>
 }
 
 @MainActor
@@ -67,6 +75,8 @@ public final class WalletCoordinator: ObservableObject {
     public let secretStore: SecretStoreProtocol
     public let storageManager: AppStorageManager
     public let deepSeekClient: DeepSeekClient
+    public let openAICostClient: OpenAICostClient
+    public let anthropicCostClient: AnthropicCostClient
     private let clock: @Sendable () -> Date
 
     private var activeOperations: [ConnectionID: ActiveOperation] = [:]
@@ -79,12 +89,16 @@ public final class WalletCoordinator: ObservableObject {
         secretStore: SecretStoreProtocol,
         storageManager: AppStorageManager,
         deepSeekClient: DeepSeekClient? = nil,
+        openAICostClient: OpenAICostClient? = nil,
+        anthropicCostClient: AnthropicCostClient? = nil,
         isFixtureMode: Bool = false,
         clock: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.secretStore = secretStore
         self.storageManager = storageManager
         self.deepSeekClient = deepSeekClient ?? DeepSeekClient(dateProvider: clock)
+        self.openAICostClient = openAICostClient ?? OpenAICostClient(dateProvider: clock)
+        self.anthropicCostClient = anthropicCostClient ?? AnthropicCostClient(dateProvider: clock)
         self.isFixtureMode = isFixtureMode
         self.clock = clock
 
@@ -297,7 +311,7 @@ public final class WalletCoordinator: ObservableObject {
                 }
                 changed = true
             case .persistenceFailure:
-                staged[index].state = staged[index].lastObservation == nil
+                staged[index].state = staged[index].lastObservation == nil && staged[index].lastAPICostObservation == nil
                     ? .unavailable : .ready
                 changed = true
             default: break
@@ -376,14 +390,15 @@ public final class WalletCoordinator: ObservableObject {
     // MARK: - Connection Lifecycle and Recovery (T02-R01, T02-R02, T02-R03)
 
     @discardableResult
-    public func addConnection(provider: ProviderID, userLabel: String, apiKey: String) async throws -> Connection {
+    public func addConnection(provider: ProviderID, userLabel: String, apiKey: String, monthlyBudget: Decimal? = nil) async throws -> Connection {
         try requireMutationAllowed()
-        guard provider == .deepseek else { throw CoordinatorError.unsupportedProvider }
+        guard provider == .deepseek || provider == .openai || provider == .anthropic else { throw CoordinatorError.unsupportedProvider }
+        try validateBudget(monthlyBudget)
         let cleanKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanKey.isEmpty else { throw CoordinatorError.missingCredential }
         let connection = Connection(
             id: ConnectionID(), credentialId: ConnectionID(), generationId: ConnectionGenerationID(),
-            providerId: provider, userLabel: userLabel, createdAt: clock(), updatedAt: clock(), state: .verifying
+            providerId: provider, userLabel: userLabel, createdAt: clock(), updatedAt: clock(), monthlyBudget: monthlyBudget, state: .verifying
         )
         let intent = PendingOperationIntent(
             connectionId: connection.id, generationId: connection.generationId,
@@ -408,18 +423,20 @@ public final class WalletCoordinator: ObservableObject {
         return connections.first { $0.id == connection.id } ?? connection
     }
 
-    public func updateConnection(id: ConnectionID, userLabel: String, newApiKey: String?) async throws {
+    public func updateConnection(id: ConnectionID, userLabel: String, newApiKey: String?, monthlyBudget: Decimal? = nil) async throws {
         try requireMutationAllowed(for: id)
+        try validateBudget(monthlyBudget)
         guard let index = connections.firstIndex(where: { $0.id == id }) else { throw CoordinatorError.connectionNotFound }
         guard let cleanKey = newApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !cleanKey.isEmpty else {
             var staged = connections
             staged[index].userLabel = userLabel
+            staged[index].monthlyBudget = monthlyBudget
             staged[index].updatedAt = clock()
             try persistStaged(connections: staged, observations: observations)
             return
         }
         let original = connections[index]
-        guard original.providerId == .deepseek else { throw CoordinatorError.unsupportedProvider }
+        guard original.providerId == .deepseek || original.providerId == .openai || original.providerId == .anthropic else { throw CoordinatorError.unsupportedProvider }
         cancelOperation(for: id)
         let intent = PendingOperationIntent(
             connectionId: id, generationId: ConnectionGenerationID(), credentialId: ConnectionID(),
@@ -433,6 +450,8 @@ public final class WalletCoordinator: ObservableObject {
         staged[index].userLabel = userLabel
         staged[index].updatedAt = clock()
         staged[index].lastObservation = nil
+        staged[index].lastAPICostObservation = nil
+        staged[index].monthlyBudget = monthlyBudget
         staged[index].lastSuccessfulRefresh = nil
         staged[index].lastAttemptedRefresh = nil
         staged[index].state = .verifying
@@ -479,14 +498,9 @@ public final class WalletCoordinator: ObservableObject {
     ) async {
         guard !isDemoMode, schedulingActive, !storageManager.isBlocked, !hasPendingIntent(for: connectionId) else { return }
         let operationId = UUID()
-        let client = self.deepSeekClient
-
-        let task = Task<WalletObservation, Error> {
-            try await client.fetchBalance(
-                apiKey: apiKey,
-                connectionId: connectionId,
-                generationId: generationId
-            )
+        guard let provider = connections.first(where: { $0.id == connectionId })?.providerId else { return }
+        let task = Task<APIReading, Error> {
+            try await self.acquire(provider: provider, apiKey: apiKey, connectionId: connectionId, generationId: generationId)
         }
 
         activeOperations[connectionId] = ActiveOperation(
@@ -501,9 +515,13 @@ public final class WalletCoordinator: ObservableObject {
                 return
             }
             cleanUpOperation(connectionId: connectionId, operationId: operationId)
-            applySuccessfulReading(observation: observation, for: connectionId)
+            applySuccessfulReading(reading: observation, for: connectionId)
         } catch is CancellationError {
             cleanUpOperation(connectionId: connectionId, operationId: operationId)
+        } catch let costError as APICostError {
+            guard shouldApplyResult(connectionId: connectionId, generationId: generationId, operationId: operationId) else { return }
+            cleanUpOperation(connectionId: connectionId, operationId: operationId)
+            applyRefreshError(error: mappedCostError(costError), for: connectionId)
         } catch let deepSeekError as DeepSeekError {
             guard shouldApplyResult(connectionId: connectionId, generationId: generationId, operationId: operationId) else {
                 return
@@ -552,14 +570,8 @@ public final class WalletCoordinator: ObservableObject {
 
         let generationId = conn.generationId
         let operationId = UUID()
-        let client = self.deepSeekClient
-
-        let task = Task<WalletObservation, Error> {
-            try await client.fetchBalance(
-                apiKey: apiKey,
-                connectionId: connectionId,
-                generationId: generationId
-            )
+        let task = Task<APIReading, Error> {
+            try await self.acquire(provider: conn.providerId, apiKey: apiKey, connectionId: connectionId, generationId: generationId)
         }
 
         activeOperations[connectionId] = ActiveOperation(
@@ -576,9 +588,13 @@ public final class WalletCoordinator: ObservableObject {
                 return
             }
             cleanUpOperation(connectionId: connectionId, operationId: operationId)
-            applySuccessfulReading(observation: observation, for: connectionId)
+            applySuccessfulReading(reading: observation, for: connectionId)
         } catch is CancellationError {
             cleanUpOperation(connectionId: connectionId, operationId: operationId)
+        } catch let costError as APICostError {
+            guard shouldApplyResult(connectionId: connectionId, generationId: generationId, operationId: operationId) else { return }
+            cleanUpOperation(connectionId: connectionId, operationId: operationId)
+            applyRefreshError(error: mappedCostError(costError), for: connectionId)
         } catch let deepSeekError as DeepSeekError {
             guard shouldApplyResult(connectionId: connectionId, generationId: generationId, operationId: operationId) else {
                 return
@@ -637,6 +653,36 @@ public final class WalletCoordinator: ObservableObject {
         isRefreshing = !activeOperations.isEmpty
     }
 
+    private func validateBudget(_ budget: Decimal?) throws {
+        if let budget, budget.isNaN || budget <= 0 { throw CoordinatorError.invalidBudget }
+    }
+
+    private func acquire(provider: ProviderID, apiKey: String, connectionId: ConnectionID, generationId: ConnectionGenerationID) async throws -> APIReading {
+        switch provider {
+        case .deepseek:
+            return .wallet(try await deepSeekClient.fetchBalance(apiKey: apiKey, connectionId: connectionId, generationId: generationId))
+        case .openai:
+            return .cost(try await openAICostClient.fetchCurrentMonthCost(adminAPIKey: apiKey, connectionId: connectionId, generationId: generationId))
+        case .anthropic:
+            return .cost(try await anthropicCostClient.fetchCurrentMonthCost(adminAPIKey: apiKey, connectionId: connectionId, generationId: generationId))
+        default: throw CoordinatorError.unsupportedProvider
+        }
+    }
+
+    private func mappedCostError(_ error: APICostError) -> DeepSeekError {
+        switch error {
+        case .authFailure(let code): return .authFailure(statusCode: code)
+        case .rateLimited(let deadline): return .rateLimited(retryAfter: deadline)
+        case .serverError(let code): return .serverError(statusCode: code)
+        case .offline: return .offline
+        case .timeout: return .timeout
+        case .cancelled: return .cancelled
+        case .responseTooLarge: return .responseTooLarge
+        case .malformedResponse, .incompleteReport, .redirectRejected, .invalidHost: return .malformedResponse
+        case .networkError: return .networkError
+        }
+    }
+
     // MARK: - State Update Helpers
 
     private func recordRefreshAttempt(for connectionId: ConnectionID) {
@@ -644,17 +690,20 @@ public final class WalletCoordinator: ObservableObject {
         connections[idx].lastAttemptedRefresh = clock()
     }
 
-    private func applySuccessfulReading(observation: WalletObservation, for connectionId: ConnectionID) {
+    private func applySuccessfulReading(reading: APIReading, for connectionId: ConnectionID) {
         guard let idx = connections.firstIndex(where: { $0.id == connectionId }) else { return }
         let now = clock()
 
         connections[idx].lastSuccessfulRefresh = now
-        connections[idx].lastObservation = observation
+        switch reading {
+        case .wallet(let observation):
+            connections[idx].lastObservation = observation
+            observations.removeAll { $0.id == observation.id || ($0.connectionId == connectionId && $0.capturedAt == observation.capturedAt) }
+            observations.append(observation)
+        case .cost(let observation):
+            connections[idx].lastAPICostObservation = observation
+        }
         connections[idx].state = .ready
-
-        // Add to observations history
-        observations.removeAll { $0.id == observation.id || ($0.connectionId == connectionId && $0.capturedAt == observation.capturedAt) }
-        observations.append(observation)
 
         do {
             try persistCurrentState()
@@ -793,7 +842,7 @@ public final class WalletCoordinator: ObservableObject {
     public func setupImportedConnectionKey(id: ConnectionID, apiKey: String) async throws {
         guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw CoordinatorError.missingCredential }
         guard let connection = connections.first(where: { $0.id == id }) else { throw CoordinatorError.connectionNotFound }
-        try await updateConnection(id: id, userLabel: connection.userLabel, newApiKey: apiKey)
+        try await updateConnection(id: id, userLabel: connection.userLabel, newApiKey: apiKey, monthlyBudget: connection.monthlyBudget)
     }
 
     // MARK: - Export and Import (T02-R01, T02-R07)

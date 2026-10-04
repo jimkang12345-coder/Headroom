@@ -3,6 +3,7 @@ import Foundation
 public enum ProviderKind: String, Codable, Sendable {
     case subscription
     case wallet
+    case apiCost
 }
 
 public enum ProviderLifecycleStatus: Equatable, Sendable {
@@ -12,6 +13,8 @@ public enum ProviderLifecycleStatus: Equatable, Sendable {
 
 public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
     case deepseek
+    case openai
+    case anthropic
     case codex
     case claude
     case antigravity
@@ -25,10 +28,14 @@ public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .deepseek:
             return "DeepSeek"
+        case .openai:
+            return "OpenAI API"
+        case .anthropic:
+            return "Anthropic API"
         case .codex:
             return "Codex"
         case .claude:
-            return "Claude"
+            return "Claude Code"
         case .antigravity:
             return "Antigravity"
         case .zai:
@@ -44,6 +51,8 @@ public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .deepseek, .zai, .mimo, .byteplus:
             return .wallet
+        case .openai, .anthropic:
+            return .apiCost
         case .codex, .claude, .antigravity:
             return .subscription
         }
@@ -53,6 +62,10 @@ public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .deepseek:
             return "creditcard.fill"
+        case .openai:
+            return "chart.bar.fill"
+        case .anthropic:
+            return "chart.pie.fill"
         case .codex:
             return "terminal.fill"
         case .claude:
@@ -70,9 +83,9 @@ public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var lifecycleStatus: ProviderLifecycleStatus {
         switch self {
-        case .deepseek:
+        case .deepseek, .openai, .anthropic, .codex, .claude:
             return .implemented
-        case .codex, .claude, .antigravity:
+        case .antigravity:
             return .comingSoon(description: "Subscription quota monitoring coming soon")
         case .zai, .mimo, .byteplus:
             return .comingSoon(description: "Wallet connection coming soon")
@@ -80,7 +93,16 @@ public enum ProviderID: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 
     public var isImplemented: Bool {
-        self == .deepseek
+        lifecycleStatus == .implemented
+    }
+
+    /// API connection capability is separate from implemented local subscription readers.
+    public var supportsAPIConnection: Bool {
+        self == .deepseek || isAPICostProvider
+    }
+
+    public var isAPICostProvider: Bool {
+        self == .openai || self == .anthropic
     }
 
     public var statusDescription: String {

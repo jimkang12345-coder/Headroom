@@ -46,7 +46,7 @@ struct MacSettingsView: View {
                     ))
                     .accessibilityLabel("Toggle Demo Mode")
 
-                    Text("Demo Mode displays synthetic balances and suspends provider refresh. Requests already started may finish. Use a fixture launch for isolated screenshots; exiting Demo Mode restores your local account view.")
+                    Text("Demo Mode displays synthetic limits and balances and suspends provider refresh. Requests already started may finish. Use a fixture launch for isolated screenshots; exiting Demo Mode restores your local account view.")
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
@@ -77,7 +77,7 @@ struct MacSettingsView: View {
                     }
                     .padding(.top, 4)
 
-                    Text("Backups include account labels and balance history. Keep them private; API keys are excluded.")
+                    Text("Backups include account labels, API reports, budget targets and balance history. Keep them private; API keys are excluded.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -95,7 +95,7 @@ struct MacSettingsView: View {
                 }
 
                 Section("Refresh Policy") {
-                    Text("Auto-refresh executes every 5 minutes while the app is active and awake. Backoff and Retry-After headers from providers are respected automatically.")
+                    Text("Codex checks on a 15-second success cadence with bounded retries while active and awake. Claude Code updates when its local status-line feed reports limits. Optional API trackers refresh every 5 minutes; daily cost reports can lag. Provider backoff and Retry-After are respected.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -103,7 +103,7 @@ struct MacSettingsView: View {
                 Section("About Headroom") {
                     LabeledContent("App", value: "Headroom")
                     LabeledContent("Version", value: "1.0.0")
-                    LabeledContent("Private data", value: "History on this Mac; API keys in Keychain")
+                    LabeledContent("Private data", value: "History and API targets on this Mac; keys in Keychain")
                     Text("Refreshing contacts the provider you connected. Website sign-in pages and official local clients have their own network activity. Disconnect Claude to remove Headroom's website sign-in session.")
                         .font(.caption)
                         .foregroundStyle(.secondary)

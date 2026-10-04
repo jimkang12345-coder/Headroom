@@ -4,13 +4,13 @@ Headroom's goal is local private processing, explicit provider connections and n
 
 ## Data on this Mac
 
-API credentials are stored in the system Keychain and kept out of wallet JSON. Wallet records, recovery records and backups contain private account labels and observations. The app restricts its storage directory to mode `0700` and its data files to `0600`, repairs older modes and rejects substituted symlinks. POSIX modes do not remove existing ACL grants, encrypt the files or defend against a compromised user account or administrator.
+API credentials are stored in the system Keychain and kept out of wallet JSON. Wallet records, API cost reports, local budget targets, recovery records and backups contain private account labels and observations. The app restricts its storage directory to mode `0700` and its data files to `0600`, repairs older modes and rejects substituted symlinks. POSIX modes do not remove existing ACL grants, encrypt the files or defend against a compromised user account or administrator.
 
 Appearance and connection flags use local preferences. A Debug fixture launch uses a fresh separate preference suite, temporary wallet folder and in-memory credentials. Normal Demo Mode shows synthetic data, but a normal app may have loaded private state before demo was selected. Use the explicit fixture launch for evidence capture.
 
 ## Data leaving this Mac
 
-Connected provider APIs receive authenticated requests and ordinary connection metadata. The Codex integration invokes the local official client. The optional Claude Code integration installs a local status-line feed and consumes reported subscription metrics. Those external clients have their own privacy policies and behavior.
+Connected provider APIs receive authenticated requests and ordinary connection metadata. Optional OpenAI and Anthropic reporting adapters send organization Admin credentials only to their fixed HTTPS reporting origins, reject redirects and bound responses/pagination. They call read-only cost endpoints; a local monthly target does not alter provider billing settings. The Codex integration invokes the local official client. The optional Claude Code integration installs a local status-line feed and consumes reported subscription metrics. Those external clients have their own privacy policies and behavior.
 
 The optional Claude website connection is a separate persistent WebKit session. The provider and its page resources can make requests. Exact HTTPS main-frame navigation restrictions and pop-up rejection do not confine all subresource traffic. Disconnect destroys the view and removes the dedicated website data store; a failure remains visible and must be retried before reconnection.
 

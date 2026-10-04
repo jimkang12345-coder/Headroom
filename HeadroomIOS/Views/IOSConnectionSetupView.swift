@@ -16,7 +16,7 @@ struct IOSConnectionSetupView: View {
             Form {
                 Section("Provider") {
                     Picker("Select Provider", selection: $selectedProvider) {
-                        ForEach(ProviderID.allCases) { provider in
+                        ForEach(ProviderID.allCases.filter { $0.kind != .subscription }) { provider in
                             Text(provider.displayName).tag(provider)
                         }
                     }

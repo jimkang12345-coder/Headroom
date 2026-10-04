@@ -3,6 +3,24 @@ import XCTest
 
 final class FixturePreferencesTests: XCTestCase {
     @MainActor
+    func testOrganizationFixtureAdaptersStayOfflineAndDoNotCreateWalletBalances() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("headroom-org-fixture-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let coordinator = FixtureEnvironment.makeCoordinator(fixtureDir: directory)
+        defer { coordinator.pauseScheduling() }
+        for (provider, key) in [(ProviderID.openai, "sk-admin-fixture-valid"), (.anthropic, "sk-ant-admin01-fixture-valid")] {
+            let connection = try await coordinator.addConnection(provider: provider, userLabel: "Synthetic API report", apiKey: key, monthlyBudget: 50)
+            XCTAssertEqual(connection.state, .ready)
+            XCTAssertEqual(connection.lastAPICostObservation?.providerId, provider)
+            XCTAssertNil(connection.lastObservation)
+            XCTAssertTrue(coordinator.observations.isEmpty)
+            let original = connection.lastAPICostObservation
+            await coordinator.refresh(connectionId: connection.id, forced: true)
+            XCTAssertEqual(coordinator.connections.first(where: { $0.id == connection.id })?.lastAPICostObservation?.amount, original?.amount)
+        }
+    }
+
+    @MainActor
     func testFixtureAccountVerificationAndRefreshStayOffline() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

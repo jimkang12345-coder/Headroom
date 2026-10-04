@@ -41,6 +41,8 @@ public struct ConnectionSnapshotDTO: Codable, Sendable, Equatable {
     public let lastAttemptedRefresh: Date?
     public let lastSuccessfulRefresh: Date?
     public let stateSummary: String
+    public let monthlyBudget: String?
+    public let apiCost: APICostObservation?
 
     public init(from connection: Connection) {
         self.id = connection.id.uuidString
@@ -51,6 +53,8 @@ public struct ConnectionSnapshotDTO: Codable, Sendable, Equatable {
         self.lastAttemptedRefresh = connection.lastAttemptedRefresh
         self.lastSuccessfulRefresh = connection.lastSuccessfulRefresh
         self.stateSummary = connection.state.statusSummary
+        self.monthlyBudget = connection.monthlyBudget.map { NSDecimalNumber(decimal: $0).stringValue }
+        self.apiCost = connection.lastAPICostObservation
     }
 
     public init(
@@ -61,7 +65,9 @@ public struct ConnectionSnapshotDTO: Codable, Sendable, Equatable {
         updatedAt: Date,
         lastAttemptedRefresh: Date?,
         lastSuccessfulRefresh: Date?,
-        stateSummary: String
+        stateSummary: String,
+        monthlyBudget: String? = nil,
+        apiCost: APICostObservation? = nil
     ) {
         self.id = id
         self.providerId = providerId
@@ -71,6 +77,8 @@ public struct ConnectionSnapshotDTO: Codable, Sendable, Equatable {
         self.lastAttemptedRefresh = lastAttemptedRefresh
         self.lastSuccessfulRefresh = lastSuccessfulRefresh
         self.stateSummary = stateSummary
+        self.monthlyBudget = monthlyBudget
+        self.apiCost = apiCost
     }
 }
 

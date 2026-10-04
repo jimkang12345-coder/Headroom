@@ -11,6 +11,8 @@ public struct Connection: Hashable, Codable, Sendable, Identifiable {
     public var lastAttemptedRefresh: Date?
     public var lastSuccessfulRefresh: Date?
     public var lastObservation: WalletObservation?
+    public var lastAPICostObservation: APICostObservation?
+    public var monthlyBudget: Decimal?
     public var state: ConnectionState
 
     public init(
@@ -24,6 +26,8 @@ public struct Connection: Hashable, Codable, Sendable, Identifiable {
         lastAttemptedRefresh: Date? = nil,
         lastSuccessfulRefresh: Date? = nil,
         lastObservation: WalletObservation? = nil,
+        lastAPICostObservation: APICostObservation? = nil,
+        monthlyBudget: Decimal? = nil,
         state: ConnectionState = .notConfigured
     ) {
         self.id = id
@@ -36,6 +40,8 @@ public struct Connection: Hashable, Codable, Sendable, Identifiable {
         self.lastAttemptedRefresh = lastAttemptedRefresh
         self.lastSuccessfulRefresh = lastSuccessfulRefresh
         self.lastObservation = lastObservation
+        self.lastAPICostObservation = lastAPICostObservation
+        self.monthlyBudget = monthlyBudget
         self.state = state
     }
 
@@ -50,6 +56,8 @@ public struct Connection: Hashable, Codable, Sendable, Identifiable {
         case lastAttemptedRefresh
         case lastSuccessfulRefresh
         case lastObservation
+        case lastAPICostObservation
+        case monthlyBudget
         case state
     }
 
@@ -65,6 +73,8 @@ public struct Connection: Hashable, Codable, Sendable, Identifiable {
         self.lastAttemptedRefresh = try container.decodeIfPresent(Date.self, forKey: .lastAttemptedRefresh)
         self.lastSuccessfulRefresh = try container.decodeIfPresent(Date.self, forKey: .lastSuccessfulRefresh)
         self.lastObservation = try container.decodeIfPresent(WalletObservation.self, forKey: .lastObservation)
+        self.lastAPICostObservation = try container.decodeIfPresent(APICostObservation.self, forKey: .lastAPICostObservation)
+        self.monthlyBudget = try container.decodeIfPresent(Decimal.self, forKey: .monthlyBudget)
         self.state = try container.decode(ConnectionState.self, forKey: .state)
     }
 

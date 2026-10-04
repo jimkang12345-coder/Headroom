@@ -4,9 +4,9 @@ import HeadroomCore
 struct MacContentView: View {
     @EnvironmentObject var coordinator: WalletCoordinator
     @EnvironmentObject var subscriptions: SubscriptionStore
-    private static let overviewID = ConnectionID(uuidString: "00000000-0000-0000-0000-000000000001")!
-    private static let codexID = ConnectionID(uuidString: "00000000-0000-0000-0000-000000000002")!
-    private static let claudeID = ConnectionID(uuidString: "00000000-0000-0000-0000-000000000003")!
+    private static let overviewID = ConnectionID(uuidString: "00000000-0000-0000-0000-00000000F001")!
+    private static let codexID = ConnectionID(uuidString: "00000000-0000-0000-0000-00000000F002")!
+    private static let claudeID = ConnectionID(uuidString: "00000000-0000-0000-0000-00000000F003")!
     @State private var selectedConnectionID: ConnectionID? = overviewID
     @State private var isShowingSetupSheet: Bool = false
     @State private var isShowingSettingsSheet: Bool = false
@@ -63,7 +63,7 @@ struct MacContentView: View {
                     Button(action: { coordinator.setDemoMode(true) }) {
                         Label("Demo Mode", systemImage: "flask")
                     }
-                    .help("Preview multi-currency synthetic wallets in safe isolated demo mode")
+                    .help("Preview synthetic limits and API readings")
                     .accessibilityLabel("Enter Demo Mode")
                 }
 
@@ -73,16 +73,21 @@ struct MacContentView: View {
                 }) {
                     Label("Refresh All", systemImage: "arrow.clockwise")
                 }
-                .disabled(coordinator.isRefreshing || coordinator.isDemoMode)
-                .help("Refresh balances from active providers")
-                .accessibilityLabel("Refresh All Balances")
+                .disabled(coordinator.isRefreshing || subscriptions.refreshing || coordinator.isDemoMode)
+                .help("Refresh subscription limits and added API trackers")
+                .accessibilityLabel("Refresh Limits and API Trackers")
+
+                Button(action: { isShowingSubscriptions = true }) {
+                    Label("Manage Limits", systemImage: "slider.horizontal.3")
+                }
+                .help("Connect Codex and Claude Code subscription tracking")
 
                 Button(action: { isShowingSetupSheet = true }) {
-                    Label("Add Connection", systemImage: "plus")
+                    Label("Add API Tracker", systemImage: "plus")
                 }
                 .disabled(coordinator.isDemoMode || coordinator.isStorageBlocked)
-                .help(coordinator.isDemoMode ? "Exit Demo Mode to add real accounts" : "Add new provider connection")
-                .accessibilityLabel("Add Provider Connection")
+                .help(coordinator.isDemoMode ? "Exit Demo Mode to add real accounts" : "Add an optional API budget or balance tracker")
+                .accessibilityLabel("Add API Tracker")
 
                 Button(action: { isShowingSettingsSheet = true }) {
                     Label("Settings", systemImage: "gearshape")
@@ -108,64 +113,39 @@ struct MacContentView: View {
     @ViewBuilder
     private var sidebarContent: some View {
         List(selection: $selectedConnectionID) {
-            Section {
+            Section("Subscription limits") {
                 NavigationLink(value: Self.overviewID) {
-                    Label("Overview", systemImage: "square.grid.2x2.fill")
+                    Label("All limits", systemImage: "gauge.with.needle.fill")
                         .fontWeight(selectedConnectionID == Self.overviewID ? .semibold : .regular)
                 }
+                NavigationLink(value: Self.codexID) {
+                    subscriptionRow("Codex", icon: "terminal.fill", usage: subscriptions.codex, connected: subscriptions.isSyntheticMode || subscriptions.codexConnected)
+                }
+                NavigationLink(value: Self.claudeID) {
+                    subscriptionRow("Claude Code", icon: "brain.head.profile", usage: subscriptions.claude, connected: subscriptions.isSyntheticMode || subscriptions.claudeConnected)
+                }
+                Button("Manage limit connections") { isShowingSubscriptions = true }
+                    .font(.caption)
             }
-            if !coordinator.isDemoMode && !coordinator.isFixtureMode {
-                Section("Subscriptions") {
-                    NavigationLink(value: Self.codexID) {
-                        subscriptionRow("Codex", icon: "terminal.fill", usage: subscriptions.codex, connected: subscriptions.codexConnected)
+
+            Section("Optional API trackers") {
+                ForEach(coordinator.activeConnections.filter { $0.providerId.kind != .subscription }) { connection in
+                    NavigationLink(value: connection.id) {
+                        ConnectionSidebarRow(connection: connection)
                     }
-                    NavigationLink(value: Self.claudeID) {
-                        subscriptionRow("Claude", icon: "brain.head.profile", usage: subscriptions.claude, connected: subscriptions.claudeConnected)
-                    }
-                    Button("Manage connections") { isShowingSubscriptions = true }
-                        .font(.caption)
+                }
+                Button(action: { isShowingSetupSheet = true }) {
+                    Label("Add API tracker", systemImage: "plus.circle")
+                }
+                .disabled(coordinator.isDemoMode || coordinator.isStorageBlocked)
+                if coordinator.activeConnections.isEmpty {
+                    Text("Add budgets or balances when you need them.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
+
             if coordinator.isStorageBlocked {
                 storageBlockedSection
-            }
-
-            if coordinator.activeConnections.isEmpty && !coordinator.isDemoMode {
-                firstLaunchSection
-            } else {
-                Section("API Wallets") {
-                    ForEach(coordinator.activeConnections.filter { $0.providerId.kind == .wallet }) { conn in
-                        NavigationLink(value: conn.id) {
-                            ConnectionSidebarRow(connection: conn)
-                        }
-                    }
-                }
-
-                Section("Provider Catalog") {
-                    ForEach(ProviderID.allCases.filter { $0 != .codex && $0 != .claude }) { provider in
-                        HStack {
-                            Image(systemName: provider.systemImage)
-                                .foregroundColor(provider.isImplemented ? .accentColor : .secondary)
-                                .frame(width: 20)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(provider.displayName)
-                                    .font(.callout)
-                                Text(provider.statusDescription)
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            if provider.isImplemented {
-                                Text("Ready")
-                                    .font(.caption2.bold())
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        .padding(.vertical, 2)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("\(provider.displayName): \(provider.statusDescription)")
-                    }
-                }
             }
         }
         .listStyle(.sidebar)
@@ -188,81 +168,21 @@ struct MacContentView: View {
     }
 
     @ViewBuilder
-    private var firstLaunchSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Welcome to Headroom")
-                    .font(.headline)
-                Text("Track your AI subscriptions and wallet balances. Open Codex & Claude above, or connect DeepSeek below.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            VStack(spacing: 8) {
-                Button(action: { isShowingSetupSheet = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Connect DeepSeek")
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-
-                Button(action: { coordinator.setDemoMode(true) }) {
-                    HStack {
-                        Image(systemName: "flask")
-                        Text("Preview Demo Mode")
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-            }
-            .padding(.top, 4)
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Label("Local storage only", systemImage: "lock.shield")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                Label("Direct provider API requests", systemImage: "network")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                Label("No intermediate server", systemImage: "server.rack")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-
-    @ViewBuilder
     private var detailContent: some View {
-        if coordinator.isStorageBlocked && coordinator.activeConnections.isEmpty {
-            storageBlockedDetailPane
-        } else if !coordinator.activeConnections.contains(where: { $0.id == selectedConnectionID }) && !coordinator.isDemoMode && !coordinator.isFixtureMode {
-            MacOverviewView(manage: { isShowingSubscriptions = true }, selectWallet: { selectedConnectionID = $0 })
-                .environmentObject(subscriptions)
-                .environmentObject(coordinator)
-        } else if let selectedID = selectedConnectionID ?? coordinator.activeConnections.first?.id,
+        if let selectedID = selectedConnectionID,
+           ![Self.overviewID, Self.codexID, Self.claudeID].contains(selectedID),
            let connection = coordinator.activeConnections.first(where: { $0.id == selectedID }) {
             MacWalletDetailView(connectionId: connection.id)
                 .environmentObject(coordinator)
         } else {
-            VStack(spacing: 12) {
-                Image(systemName: "creditcard")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                Text("Select a Wallet")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-                Text("Choose a connection from the sidebar or click '+' to connect a new provider.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            MacOverviewView(
+                manage: { isShowingSubscriptions = true },
+                addAPI: { isShowingSetupSheet = true },
+                selectWallet: { selectedConnectionID = $0 },
+                focusedProvider: selectedConnectionID == Self.codexID ? .codex : selectedConnectionID == Self.claudeID ? .claude : nil
+            )
+            .environmentObject(subscriptions)
+            .environmentObject(coordinator)
         }
     }
 
@@ -301,42 +221,7 @@ struct MacContentView: View {
         .cornerRadius(8)
     }
 
-    @ViewBuilder
-    private var storageBlockedDetailPane: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.shield.fill")
-                .font(.system(size: 48))
-                .foregroundColor(.red)
-            Text("Storage Write-Locked")
-                .font(.title2.bold())
-            Text("Headroom detected an unreadable or future storage schema:\n\(coordinator.storageStatus.description)")
-                .multilineTextAlignment(.center)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: 450)
-            Text("To prevent data corruption, all writes are blocked until explicit recovery.")
-                .font(.caption)
-                .foregroundColor(.secondary)
 
-            HStack(spacing: 16) {
-                Button("Retry Load") {
-                    coordinator.loadStoredData()
-                }
-                .buttonStyle(.borderedProminent)
-
-                Button("Start Fresh (Preserve Backup)") {
-                    do {
-                        try coordinator.recoverStorageByStartingFresh()
-                    } catch {
-                        coordinator.lastErrorMessage = error.localizedDescription
-                    }
-                }
-                .buttonStyle(.bordered)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(32)
-    }
 }
 
 struct ConnectionSidebarRow: View {
@@ -353,7 +238,11 @@ struct ConnectionSidebarRow: View {
                     .font(.body.weight(.medium))
                     .lineLimit(1)
 
-                if let observation = connection.lastObservation, let primary = observation.primaryBalance {
+                if let cost = connection.lastAPICostObservation {
+                    Text("\(cost.amount.formatted(.currency(code: cost.currency))) API spend")
+                        .font(.caption.monospacedDigit())
+                        .foregroundColor(.primary)
+                } else if let observation = connection.lastObservation, let primary = observation.primaryBalance {
                     Text("\(primary.formattedTotal) (\(primary.currency))")
                         .font(.caption.monospacedDigit())
                         .foregroundColor(.primary)
@@ -376,7 +265,9 @@ struct ConnectionSidebarRow: View {
 
     private var accessibleRowLabel: String {
         var parts: [String] = [connection.effectiveLabel, connection.providerId.displayName]
-        if let obs = connection.lastObservation, let primary = obs.primaryBalance {
+        if let cost = connection.lastAPICostObservation {
+            parts.append("API spend: \(cost.amount.formatted(.currency(code: cost.currency)))")
+        } else if let obs = connection.lastObservation, let primary = obs.primaryBalance {
             parts.append("Balance: \(primary.formattedTotal) \(primary.currency)")
         }
         parts.append("Status: \(connection.state.statusSummary)")

@@ -89,9 +89,9 @@ struct HeadroomMacApp: App {
             MacContentView()
                 .environmentObject(coordinator)
                 .environmentObject(subscriptions)
-                .task { subscriptions.setSuspended(coordinator.isDemoMode || coordinator.isFixtureMode) }
+                .task { subscriptions.setSyntheticMode(coordinator.isDemoMode || coordinator.isFixtureMode) }
                 .onChange(of: coordinator.isDemoMode) { _, value in
-                    subscriptions.setSuspended(value || coordinator.isFixtureMode)
+                    subscriptions.setSyntheticMode(value || coordinator.isFixtureMode)
                 }
                 .preferredColorScheme(preferredColorScheme)
                 .frame(minWidth: 700, minHeight: 450)
@@ -115,7 +115,7 @@ struct HeadroomMacApp: App {
         MenuBarExtra {
             subscriptionMenu
         } label: {
-            Text(menuTitle("Claude", usage: subscriptions.claude, windowID: "five_hour"))
+            Text(menuTitle("Claude Code", usage: subscriptions.claude, windowID: "five_hour"))
                 .monospacedDigit()
                 .help("Claude remaining capacity · 5-hour session")
         }
@@ -123,18 +123,22 @@ struct HeadroomMacApp: App {
     }
 
     private func menuTitle(_ name: String, usage: SubscriptionUsage?, windowID: String? = nil) -> String {
-        guard !coordinator.isDemoMode, !coordinator.isFixtureMode else { return "\(name) —" }
-        let stale = usage.map { subscriptions.displayTime.timeIntervalSince($0.observedAt) > 120 } ?? false
-        return "\(name) \(stale ? "~" : "")\(QuotaPresentation.menuPercentage(usage, windowID: windowID))"
+        if subscriptions.isSyntheticMode { return "\(name) Demo" }
+        let stale = usage.map {
+            subscriptions.displayTime.timeIntervalSince($0.observedAt) > 120 ||
+            $0.windows.contains { $0.resetsAt.map { $0 <= subscriptions.displayTime } ?? false }
+        } ?? false
+        let failed = name == "Codex" ? subscriptions.codexMessage != nil : subscriptions.claudeMessage != nil
+        return "\(name) \(stale || failed ? "~" : "")\(QuotaPresentation.menuPercentage(usage, windowID: windowID))"
     }
 
     private var subscriptionMenu: some View {
         MacMenuBarView()
             .environmentObject(coordinator)
             .environmentObject(subscriptions)
-            .task { subscriptions.setSuspended(coordinator.isDemoMode || coordinator.isFixtureMode) }
+            .task { subscriptions.setSyntheticMode(coordinator.isDemoMode || coordinator.isFixtureMode) }
             .onChange(of: coordinator.isDemoMode) { _, value in
-                subscriptions.setSuspended(value || coordinator.isFixtureMode)
+                subscriptions.setSyntheticMode(value || coordinator.isFixtureMode)
             }
             .preferredColorScheme(preferredColorScheme)
             .onAppear { appDelegate.coordinator = coordinator }

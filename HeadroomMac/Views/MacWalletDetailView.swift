@@ -25,19 +25,21 @@ struct MacWalletDetailView: View {
                         }
 
                         if conn.state.isAuthFailed {
-                            errorBanner(title: "Authentication Failed", message: "Please check or replace your API key to resume balance updates.")
+                            errorBanner(title: "Authentication Failed", message: "Check or replace the credential to resume API updates. Cost reports require an organization Admin key, rather than a normal project key.")
                         } else if conn.state.isRateLimited, let deadline = conn.state.rateLimitDeadline {
                             let relative = RelativeDateTimeFormatter().localizedString(for: deadline, relativeTo: Date())
                             infoBanner(title: "Rate Limit In Effect", message: "Provider requests are paused until \(relative).")
                         } else if case .offline(let attempt) = conn.state {
-                            infoBanner(title: "Offline", message: offlineBannerMessage(attempt: attempt, lastReadingAt: conn.lastObservation?.capturedAt ?? conn.lastSuccessfulRefresh))
+                            infoBanner(title: "Offline", message: offlineBannerMessage(attempt: attempt, lastReadingAt: conn.lastAPICostObservation?.capturedAt ?? conn.lastObservation?.capturedAt ?? conn.lastSuccessfulRefresh))
                         } else if case .keychainFailure = conn.state {
                             errorBanner(title: "Keychain Error", message: "Unable to access local credentials in Keychain.")
                         } else if case .persistenceFailure = conn.state {
-                            errorBanner(title: "Storage Error", message: "Unable to write latest balance to local storage.")
+                            errorBanner(title: "Storage Error", message: "Unable to save the latest API reading on this Mac.")
                         }
 
-                        if let observation = conn.lastObservation {
+                        if let cost = conn.lastAPICostObservation {
+                            costSection(cost, connection: conn)
+                        } else if let observation = conn.lastObservation {
                             observationSection(observation: observation)
                         } else {
                             noObservationPlaceholder(for: conn)
@@ -73,7 +75,7 @@ struct MacWalletDetailView: View {
                 Button("Cancel", role: .cancel) {}
             },
             message: {
-                Text("Are you sure you want to remove this connection? Its stored credentials and balance history will be deleted.")
+                Text("Are you sure you want to remove this connection? Its stored credential and private API readings will be deleted.")
             }
         )
     }
@@ -227,13 +229,55 @@ struct MacWalletDetailView: View {
         }
     }
 
+    private func utc(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd HH:mm 'UTC'"
+        return formatter.string(from: date)
+    }
+
+    private func usd(_ amount: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "USD —"
+    }
+
+    private func costSection(_ cost: APICostObservation, connection: Connection) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Provider-reported API spend").font(.headline)
+            Text(usd(cost.amount)).font(.largeTitle.bold()).monospacedDigit()
+            Text("UTC period: \(utc(cost.periodStart)) to \(utc(cost.periodEnd))")
+                .font(.caption).foregroundStyle(.secondary)
+            Text("Provider coverage through \(utc(cost.reportedThrough)). Daily reports may lag; amounts can be revised.")
+                .font(.caption).foregroundStyle(.secondary)
+            if let budget = connection.monthlyBudget {
+                Divider()
+                LabeledContent("Your local monthly target", value: usd(budget))
+                let remaining = budget - cost.amount
+                LabeledContent(remaining >= 0 ? "Below target by" : "Above target by", value: usd(remaining >= 0 ? remaining : -remaining))
+                Text("This comparison uses the displayed report period. It is not available credit, a billing statement or a spending cap.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Text(connection.providerId == .anthropic
+                 ? "Anthropic Priority Tier costs are excluded. API spend is separate from Claude Code subscription limits."
+                 : "OpenAI API spend is separate from Codex subscription limits.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(Color.secondary.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     @ViewBuilder
     private func noObservationPlaceholder(for conn: Connection) -> some View {
         VStack(spacing: 8) {
-            Text("No balance data recorded yet.")
+            Text(conn.providerId.kind == .apiCost ? "No API cost report recorded yet." : "No balance data recorded yet.")
                 .font(.callout)
                 .foregroundColor(.secondary)
-            Text("Click 'Refresh Now' or verify connection to fetch current balance.")
+            Text("Use Refresh Now or verify the connection to request a provider reading.")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
