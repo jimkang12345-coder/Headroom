@@ -68,26 +68,76 @@ struct WebsiteSessionRegression {
         assert(!lifecycle.acceptsReading(from: previous))
         assert(lifecycle.acceptsReading(from: lifecycle.epoch))
 
+        // First connection and repeated disconnect must succeed without creating
+        // a persistent profile. Enumeration is intentionally the first real WebKit
+        // operation, covering its required in-memory initialization too.
+        progress("CHECK: absent owned profile and repeated disconnect")
+        let absentIdentifier = UUID()
+        guard !(await ClaudeWebsiteClient.persistentStoreExists(absentIdentifier)) else {
+            throw RegressionFailure.assertion("Random absent identifier unexpectedly exists")
+        }
+        let absentClient = ClaudeWebsiteClient(dataStoreIdentifier: absentIdentifier)
+        for _ in 0..<2 {
+            try await absentClient.disconnect()
+            assert(!absentClient.sessionDeletionRequired && !absentClient.isDeletingSession)
+            guard !(await ClaudeWebsiteClient.persistentStoreExists(absentIdentifier)) else {
+                throw RegressionFailure.assertion("Absent-profile cleanup created a persistent profile")
+            }
+        }
+
         // Verify the actual macOS deletion API against one owned store, seeded offline.
         let identifier = UUID()
+        var phase = "seed owned synthetic cookie"
         do {
+            progress("CHECK: \(phase)")
             var seededStore: WKWebsiteDataStore? = WKWebsiteDataStore(forIdentifier: identifier)
             await seedSyntheticCookie(in: seededStore!)
             let seeded = await hasSyntheticCookie(in: seededStore!)
             guard seeded else { throw RegressionFailure.assertion("Synthetic cookie seed was not available") }
+            guard await ClaudeWebsiteClient.persistentStoreExists(identifier) else {
+                throw RegressionFailure.assertion("Seeded website profile was not registered on disk")
+            }
             seededStore = nil
+            phase = "delete registered owned profile"
+            progress("CHECK: \(phase)")
             let ownedClient = ClaudeWebsiteClient(dataStoreIdentifier: identifier)
             try await ownedClient.disconnect()
             assert(!ownedClient.sessionDeletionRequired)
-            let retained = await hasSyntheticCookie(in: WKWebsiteDataStore(forIdentifier: identifier))
+            guard !(await ClaudeWebsiteClient.persistentStoreExists(identifier)) else {
+                throw RegressionFailure.assertion("Owned website profile survived deletion")
+            }
+            phase = "verify synthetic cookie absence in reopened profile"
+            progress("CHECK: \(phase)")
+            var verificationStore: WKWebsiteDataStore? = WKWebsiteDataStore(forIdentifier: identifier)
+            let retained = await hasSyntheticCookie(in: verificationStore!)
+            verificationStore = nil
             guard !retained else { throw RegressionFailure.assertion("Owned session cookie survived deletion") }
-            // Reading the fresh store recreated it; remove that empty test store too.
+            // Reading a fresh empty store does not materialize a profile directory
+            // on every macOS version. Cleanup handles confirmed absence explicitly.
+            phase = "clean up reopened owned profile"
+            progress("CHECK: \(phase)")
             try await ClaudeWebsiteClient.removePersistentStore(identifier)
+            guard !(await ClaudeWebsiteClient.persistentStoreExists(identifier)) else {
+                throw RegressionFailure.assertion("Reopened owned test profile survived cleanup")
+            }
         } catch {
-            try? await ClaudeWebsiteClient.removePersistentStore(identifier)
+            diagnostic("FAIL: \(phase)", error: error)
+            do { try await ClaudeWebsiteClient.removePersistentStore(identifier) }
+            catch { diagnostic("FAIL: owned test profile cleanup after failure", error: error) }
             throw error
         }
-        print("PASS: shared async deletion, reconnect guard, failure/retry, stale reading epochs, owned synthetic cookie removal")
+        progress("PASS: shared async deletion, reconnect guard, failure/retry, stale reading epochs, absent/repeated cleanup, registered owned profile and synthetic cookie removal")
+    }
+
+    private static func progress(_ text: String) {
+        FileHandle.standardOutput.write(Data((text + "\n").utf8))
+    }
+
+    private static func diagnostic(_ phase: String, error: Error) {
+        let value = error as NSError
+        // Include the failing phase and error category, without identifiers, paths,
+        // cookies or arbitrary WebKit userInfo payloads in hosted test logs.
+        FileHandle.standardError.write(Data("\(phase) (\(value.domain), code \(value.code))\n".utf8))
     }
 
     @MainActor

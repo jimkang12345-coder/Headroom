@@ -77,12 +77,28 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     static func removePersistentStore(_ identifier: UUID) async throws {
+        // A first Code-feed connection or a repeated disconnect may have no website
+        // profile. Only confirmed absence counts as successful cleanup; errors from
+        // deleting an existing profile still reach the lifecycle's retry guard.
+        guard await persistentStoreExists(identifier) else { return }
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             WKWebsiteDataStore.remove(forIdentifier: identifier) { error in
                 if let error { continuation.resume(throwing: error) }
                 else { continuation.resume() }
             }
         }
+    }
+
+    static func persistentStoreExists(_ identifier: UUID) async -> Bool {
+        // Some WebKit versions require initialization before identifier enumeration.
+        // This in-memory store initializes WebKit without opening a website profile,
+        // creating a browser, loading a page, or reading any cookies.
+        let bootstrap = WKWebsiteDataStore.nonPersistent()
+        let identifiers: [UUID] = await withCheckedContinuation { continuation in
+            WKWebsiteDataStore.fetchAllDataStoreIdentifiers { continuation.resume(returning: $0) }
+        }
+        withExtendedLifetime(bootstrap) {}
+        return identifiers.contains(identifier)
     }
     private func prepare() -> WKWebView {
         if let webView { return webView }
