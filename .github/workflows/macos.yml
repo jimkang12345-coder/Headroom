@@ -15,6 +15,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Committed Xcode project matches its generator
+        run: |
+          python3 script/generate_project.py
+          git diff --exit-code -- Headroom.xcodeproj
       - name: Core tests and Mac build
         run: ./script/build_and_run.sh --mac --build-only
       - name: Offline subscription regression

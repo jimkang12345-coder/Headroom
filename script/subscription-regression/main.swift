@@ -39,4 +39,36 @@ try JSONSerialization.data(withJSONObject: ["statusLine": ["command": "printf ne
 try integration.uninstall()
 let changed = try String(contentsOf: settings, encoding: .utf8)
 assert(changed.contains("printf new"))
-print("PASS: feed sanitization, existing display, idempotent install, exact restore, external settings preservation")
+// Rewritten settings keep paths readable rather than JSON-escaping every slash.
+try integration.install()
+let rewritten = try String(contentsOf: settings, encoding: .utf8)
+assert(!rewritten.contains(#"\/"#))
+try integration.uninstall()
+// Without jq, connecting fails before Claude settings are created or changed.
+let bare = home.appendingPathComponent("no-jq")
+let missing = ClaudeUsageFeed(home: bare, jqCandidates: [bare.appendingPathComponent("absent/jq").path])
+do { try missing.install(); assertionFailure("Expected missing jq to be rejected") } catch {}
+assert(!fm.fileExists(atPath: missing.settings.path))
+// macOS 14 has no /usr/bin/jq; a later candidate (such as Homebrew's) is used instead.
+let installedJQ = ClaudeUsageFeed.jqCandidates.first { fm.isExecutableFile(atPath: $0) }!
+let fallbackHome = home.appendingPathComponent("fallback")
+let fallback = ClaudeUsageFeed(home: fallbackHome, jqCandidates: [fallbackHome.appendingPathComponent("absent/jq").path, installedJQ])
+try fallback.install()
+let wrapper = Process()
+wrapper.executableURL = URL(fileURLWithPath: "/bin/bash")
+wrapper.arguments = [fallback.directory.appendingPathComponent("claude-statusline.sh").path]
+let wrapperInput = Pipe(), wrapperOutput = Pipe()
+wrapper.standardInput = wrapperInput
+wrapper.standardOutput = wrapperOutput
+try wrapper.run()
+try wrapperInput.fileHandleForWriting.write(contentsOf: Data(#"{"rate_limits":{"seven_day":{"used_percentage":12}}}"#.utf8))
+try wrapperInput.fileHandleForWriting.close()
+wrapper.waitUntilExit()
+assert(wrapper.terminationStatus == 0)
+assert(String(data: wrapperOutput.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) == "Headroom · Claude\n")
+let fallbackFeed = try String(contentsOf: fallback.feed, encoding: .utf8)
+assert(fallbackFeed.contains("12"))
+try fallback.uninstall()
+let emptied = try JSONSerialization.jsonObject(with: Data(contentsOf: fallback.settings)) as? [String: Any]
+assert(emptied?.isEmpty == true)
+print("PASS: feed sanitization, existing display, idempotent install, exact restore, external settings preservation, readable settings, jq lookup")

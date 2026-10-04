@@ -177,8 +177,10 @@ public final class DeepSeekClient: @unchecked Sendable {
             return now.addingTimeInterval(60) // Bounded fallback if missing
         }
 
-        if let seconds = Double(raw), seconds >= 0 {
-            return now.addingTimeInterval(seconds)
+        // Like the cost clients, never let one header ("inf", huge values) pause refresh indefinitely.
+        let maxDelay: TimeInterval = 86_400
+        if let seconds = Double(raw), seconds.isFinite, seconds >= 0 {
+            return now.addingTimeInterval(min(seconds, maxDelay))
         }
 
         let formats = [
@@ -192,7 +194,7 @@ public final class DeepSeekClient: @unchecked Sendable {
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
             formatter.dateFormat = fmt
             if let date = formatter.date(from: raw) {
-                return date
+                return min(date, now.addingTimeInterval(maxDelay))
             }
         }
 

@@ -16,7 +16,9 @@ def fid(prefix, index):
 def get_files(subdir):
     res = []
     base = os.path.join(project_dir, subdir)
-    for root, _, files in os.walk(base):
+    for root, dirs, files in os.walk(base):
+        # Sorted traversal keeps the committed project identical on every filesystem.
+        dirs.sort()
         for f in sorted(files):
             if f.endswith(".swift"):
                 rel = os.path.relpath(os.path.join(root, f), project_dir)

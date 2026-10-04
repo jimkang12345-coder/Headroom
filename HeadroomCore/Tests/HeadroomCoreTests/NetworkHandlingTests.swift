@@ -203,6 +203,24 @@ final class NetworkHandlingTests: XCTestCase {
         }
     }
 
+    func testRetryAfterIsFiniteAndBounded() async {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let cases = [("Infinity", 60.0), ("NaN", 60.0), ("-20", 60.0), ("9999999999999999", 86_400.0),
+                     ("Fri, 31 Dec 9999 23:59:59 GMT", 86_400.0), ("120", 120.0)]
+        for (raw, delay) in cases {
+            let transport = MockNetworkTransport { request in
+                (Data(), HTTPURLResponse(url: request.url!, statusCode: 429, httpVersion: nil, headerFields: ["Retry-After": raw])!)
+            }
+            let client = DeepSeekClient(transport: transport, dateProvider: { now })
+            do {
+                _ = try await client.fetchBalance(apiKey: "sk-test", connectionId: ConnectionID(), generationId: ConnectionGenerationID())
+                XCTFail("Expected rate limit for \(raw)")
+            } catch {
+                XCTAssertEqual(error as? DeepSeekError, .rateLimited(retryAfter: now.addingTimeInterval(delay)), raw)
+            }
+        }
+    }
+
     func testAuthFailureMarksConnectionAndDoesNotRetryInLoop() async throws {
         let secretStore = InMemorySecretStore()
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
