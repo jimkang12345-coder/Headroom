@@ -1,0 +1,619 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		200000000000000000000001 /* WalletCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000001 /* WalletCoordinator.swift */; };
+		200000000000000000000002 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000002 /* KeychainSecretStore.swift */; };
+		200000000000000000000003 /* SecretStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000003 /* SecretStoreProtocol.swift */; };
+		200000000000000000000004 /* ClaudeWebsiteSessionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000004 /* ClaudeWebsiteSessionPolicy.swift */; };
+		200000000000000000000005 /* DeepSeekBalanceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000005 /* DeepSeekBalanceResponse.swift */; };
+		200000000000000000000006 /* DeepSeekClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000006 /* DeepSeekClient.swift */; };
+		200000000000000000000007 /* NetworkTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000007 /* NetworkTransport.swift */; };
+		200000000000000000000008 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000008 /* AppStorageManager.swift */; };
+		200000000000000000000009 /* HeadroomPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000009 /* HeadroomPreferences.swift */; };
+		20000000000000000000000A /* RetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000A /* RetentionPolicy.swift */; };
+		20000000000000000000000B /* StorageSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000B /* StorageSchema.swift */; };
+		20000000000000000000000C /* QuotaPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000C /* QuotaPresentation.swift */; };
+		20000000000000000000000D /* SubscriptionUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000D /* SubscriptionUsage.swift */; };
+		20000000000000000000000E /* UsageRefreshSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000E /* UsageRefreshSchedule.swift */; };
+		20000000000000000000000F /* DemoFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000F /* DemoFixtures.swift */; };
+		200000000000000000000010 /* FixtureEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000010 /* FixtureEnvironment.swift */; };
+		200000000000000000000011 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000011 /* Connection.swift */; };
+		200000000000000000000012 /* ConnectionID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000012 /* ConnectionID.swift */; };
+		200000000000000000000013 /* ConnectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000013 /* ConnectionState.swift */; };
+		200000000000000000000014 /* CurrencyBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000014 /* CurrencyBalance.swift */; };
+		200000000000000000000015 /* ProviderID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000015 /* ProviderID.swift */; };
+		200000000000000000000016 /* SnapshotDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000016 /* SnapshotDTO.swift */; };
+		200000000000000000000017 /* WalletObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000017 /* WalletObservation.swift */; };
+		200000000000000000000018 /* HeadroomMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* HeadroomMacApp.swift */; };
+		200000000000000000000019 /* ClaudeUsageFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* ClaudeUsageFeed.swift */; };
+		20000000000000000000001A /* ClaudeWebsiteClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* ClaudeWebsiteClient.swift */; };
+		20000000000000000000001B /* CodexUsageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001B /* CodexUsageClient.swift */; };
+		20000000000000000000001C /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001C /* SubscriptionStore.swift */; };
+		20000000000000000000001D /* MacConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001D /* MacConnectionSetupView.swift */; };
+		20000000000000000000001E /* MacContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* MacContentView.swift */; };
+		20000000000000000000001F /* MacMenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001F /* MacMenuBarView.swift */; };
+		200000000000000000000020 /* MacOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000020 /* MacOverviewView.swift */; };
+		200000000000000000000021 /* MacSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000021 /* MacSettingsView.swift */; };
+		200000000000000000000022 /* MacSubscriptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000022 /* MacSubscriptionsView.swift */; };
+		200000000000000000000023 /* MacWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000023 /* MacWalletDetailView.swift */; };
+		200000000000000000000024 /* HeadroomIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000024 /* HeadroomIOSApp.swift */; };
+		200000000000000000000025 /* IOSConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000025 /* IOSConnectionSetupView.swift */; };
+		200000000000000000000026 /* IOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000026 /* IOSContentView.swift */; };
+		200000000000000000000027 /* IOSSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000027 /* IOSSettingsView.swift */; };
+		200000000000000000000028 /* IOSWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000028 /* IOSWalletDetailView.swift */; };
+		20000000000000000000012D /* HeadroomCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; };
+		20000000000000000000012E /* HeadroomCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; };
+		20000000000000000000012F /* HeadroomCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		200000000000000000000130 /* HeadroomCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		200000000000000000000131 /* Headroom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000068 /* Headroom.icns */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		40000000000000000000000B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 400000000000000000000001;
+			remoteInfo = HeadroomCore;
+		};
+		40000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 400000000000000000000001;
+			remoteInfo = HeadroomCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		30000000000000000000000C /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				20000000000000000000012F /* HeadroomCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000016 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				200000000000000000000130 /* HeadroomCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		100000000000000000000001 /* WalletCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Coordinator/WalletCoordinator.swift"; sourceTree = "<group>"; };
+		100000000000000000000002 /* KeychainSecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Security/KeychainSecretStore.swift"; sourceTree = "<group>"; };
+		100000000000000000000003 /* SecretStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Security/SecretStoreProtocol.swift"; sourceTree = "<group>"; };
+		100000000000000000000004 /* ClaudeWebsiteSessionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Acquisition/ClaudeWebsiteSessionPolicy.swift"; sourceTree = "<group>"; };
+		100000000000000000000005 /* DeepSeekBalanceResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Network/DeepSeekBalanceResponse.swift"; sourceTree = "<group>"; };
+		100000000000000000000006 /* DeepSeekClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Network/DeepSeekClient.swift"; sourceTree = "<group>"; };
+		100000000000000000000007 /* NetworkTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Network/NetworkTransport.swift"; sourceTree = "<group>"; };
+		100000000000000000000008 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/AppStorageManager.swift"; sourceTree = "<group>"; };
+		100000000000000000000009 /* HeadroomPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/HeadroomPreferences.swift"; sourceTree = "<group>"; };
+		10000000000000000000000A /* RetentionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/RetentionPolicy.swift"; sourceTree = "<group>"; };
+		10000000000000000000000B /* StorageSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/StorageSchema.swift"; sourceTree = "<group>"; };
+		10000000000000000000000C /* QuotaPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/QuotaPresentation.swift"; sourceTree = "<group>"; };
+		10000000000000000000000D /* SubscriptionUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/SubscriptionUsage.swift"; sourceTree = "<group>"; };
+		10000000000000000000000E /* UsageRefreshSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/UsageRefreshSchedule.swift"; sourceTree = "<group>"; };
+		10000000000000000000000F /* DemoFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Fixtures/DemoFixtures.swift"; sourceTree = "<group>"; };
+		100000000000000000000010 /* FixtureEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Fixtures/FixtureEnvironment.swift"; sourceTree = "<group>"; };
+		100000000000000000000011 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/Connection.swift"; sourceTree = "<group>"; };
+		100000000000000000000012 /* ConnectionID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/ConnectionID.swift"; sourceTree = "<group>"; };
+		100000000000000000000013 /* ConnectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/ConnectionState.swift"; sourceTree = "<group>"; };
+		100000000000000000000014 /* CurrencyBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/CurrencyBalance.swift"; sourceTree = "<group>"; };
+		100000000000000000000015 /* ProviderID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/ProviderID.swift"; sourceTree = "<group>"; };
+		100000000000000000000016 /* SnapshotDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/SnapshotDTO.swift"; sourceTree = "<group>"; };
+		100000000000000000000017 /* WalletObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Domain/WalletObservation.swift"; sourceTree = "<group>"; };
+		100000000000000000000018 /* HeadroomMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/HeadroomMacApp.swift"; sourceTree = "<group>"; };
+		100000000000000000000019 /* ClaudeUsageFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeUsageFeed.swift"; sourceTree = "<group>"; };
+		10000000000000000000001A /* ClaudeWebsiteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeWebsiteClient.swift"; sourceTree = "<group>"; };
+		10000000000000000000001B /* CodexUsageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/CodexUsageClient.swift"; sourceTree = "<group>"; };
+		10000000000000000000001C /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/SubscriptionStore.swift"; sourceTree = "<group>"; };
+		10000000000000000000001D /* MacConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacConnectionSetupView.swift"; sourceTree = "<group>"; };
+		10000000000000000000001E /* MacContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacContentView.swift"; sourceTree = "<group>"; };
+		10000000000000000000001F /* MacMenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacMenuBarView.swift"; sourceTree = "<group>"; };
+		100000000000000000000020 /* MacOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacOverviewView.swift"; sourceTree = "<group>"; };
+		100000000000000000000021 /* MacSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSettingsView.swift"; sourceTree = "<group>"; };
+		100000000000000000000022 /* MacSubscriptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSubscriptionsView.swift"; sourceTree = "<group>"; };
+		100000000000000000000023 /* MacWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacWalletDetailView.swift"; sourceTree = "<group>"; };
+		100000000000000000000024 /* HeadroomIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/HeadroomIOSApp.swift"; sourceTree = "<group>"; };
+		100000000000000000000025 /* IOSConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSConnectionSetupView.swift"; sourceTree = "<group>"; };
+		100000000000000000000026 /* IOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSContentView.swift"; sourceTree = "<group>"; };
+		100000000000000000000027 /* IOSSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSSettingsView.swift"; sourceTree = "<group>"; };
+		100000000000000000000028 /* IOSWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSWalletDetailView.swift"; sourceTree = "<group>"; };
+		100000000000000000000064 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HeadroomMac/Info.plist"; sourceTree = "<group>"; };
+		100000000000000000000065 /* HeadroomMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "HeadroomMac/HeadroomMac.entitlements"; sourceTree = "<group>"; };
+		100000000000000000000066 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HeadroomIOS/Info.plist"; sourceTree = "<group>"; };
+		100000000000000000000067 /* HeadroomIOSEntitlements.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "HeadroomIOS/HeadroomIOSEntitlements.entitlements"; sourceTree = "<group>"; };
+		100000000000000000000068 /* Headroom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "HeadroomMac/Resources/Headroom.icns"; sourceTree = "<group>"; };
+		1000000000000000000000C9 /* HeadroomMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadroomMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1000000000000000000000CA /* HeadroomIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadroomIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1000000000000000000000CB /* HeadroomCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HeadroomCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		300000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30000000000000000000000B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20000000000000000000012D /* HeadroomCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000015 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20000000000000000000012E /* HeadroomCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		300000000000000000000064 = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000066 /* HeadroomCore */,
+				300000000000000000000067 /* HeadroomMac */,
+				300000000000000000000068 /* HeadroomIOS */,
+				300000000000000000000065 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		300000000000000000000065 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1000000000000000000000CB /* HeadroomCore.framework */,
+				1000000000000000000000C9 /* HeadroomMac.app */,
+				1000000000000000000000CA /* HeadroomIOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		300000000000000000000066 /* HeadroomCore */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000001 /* WalletCoordinator.swift */,
+				100000000000000000000002 /* KeychainSecretStore.swift */,
+				100000000000000000000003 /* SecretStoreProtocol.swift */,
+				100000000000000000000004 /* ClaudeWebsiteSessionPolicy.swift */,
+				100000000000000000000005 /* DeepSeekBalanceResponse.swift */,
+				100000000000000000000006 /* DeepSeekClient.swift */,
+				100000000000000000000007 /* NetworkTransport.swift */,
+				100000000000000000000008 /* AppStorageManager.swift */,
+				100000000000000000000009 /* HeadroomPreferences.swift */,
+				10000000000000000000000A /* RetentionPolicy.swift */,
+				10000000000000000000000B /* StorageSchema.swift */,
+				10000000000000000000000C /* QuotaPresentation.swift */,
+				10000000000000000000000D /* SubscriptionUsage.swift */,
+				10000000000000000000000E /* UsageRefreshSchedule.swift */,
+				10000000000000000000000F /* DemoFixtures.swift */,
+				100000000000000000000010 /* FixtureEnvironment.swift */,
+				100000000000000000000011 /* Connection.swift */,
+				100000000000000000000012 /* ConnectionID.swift */,
+				100000000000000000000013 /* ConnectionState.swift */,
+				100000000000000000000014 /* CurrencyBalance.swift */,
+				100000000000000000000015 /* ProviderID.swift */,
+				100000000000000000000016 /* SnapshotDTO.swift */,
+				100000000000000000000017 /* WalletObservation.swift */,
+			);
+			name = HeadroomCore;
+			sourceTree = "<group>";
+		};
+		300000000000000000000067 /* HeadroomMac */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000018 /* HeadroomMacApp.swift */,
+				100000000000000000000019 /* ClaudeUsageFeed.swift */,
+				10000000000000000000001A /* ClaudeWebsiteClient.swift */,
+				10000000000000000000001B /* CodexUsageClient.swift */,
+				10000000000000000000001C /* SubscriptionStore.swift */,
+				10000000000000000000001D /* MacConnectionSetupView.swift */,
+				10000000000000000000001E /* MacContentView.swift */,
+				10000000000000000000001F /* MacMenuBarView.swift */,
+				100000000000000000000020 /* MacOverviewView.swift */,
+				100000000000000000000021 /* MacSettingsView.swift */,
+				100000000000000000000022 /* MacSubscriptionsView.swift */,
+				100000000000000000000023 /* MacWalletDetailView.swift */,
+				100000000000000000000068 /* Headroom.icns */,
+				100000000000000000000064 /* Info.plist */,
+				100000000000000000000065 /* HeadroomMac.entitlements */,
+			);
+			name = HeadroomMac;
+			sourceTree = "<group>";
+		};
+		300000000000000000000068 /* HeadroomIOS */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000024 /* HeadroomIOSApp.swift */,
+				100000000000000000000025 /* IOSConnectionSetupView.swift */,
+				100000000000000000000026 /* IOSContentView.swift */,
+				100000000000000000000027 /* IOSSettingsView.swift */,
+				100000000000000000000028 /* IOSWalletDetailView.swift */,
+				100000000000000000000066 /* Info.plist */,
+				100000000000000000000067 /* HeadroomIOSEntitlements.entitlements */,
+			);
+			name = HeadroomIOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		400000000000000000000001 /* HeadroomCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50000000000000000000000C /* Build configuration list for PBXNativeTarget "HeadroomCore" */;
+			buildPhases = (
+				300000000000000000000001 /* Sources */,
+				300000000000000000000002 /* Frameworks */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = HeadroomCore;
+			productName = HeadroomCore;
+			productReference = 1000000000000000000000CB /* HeadroomCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		400000000000000000000002 /* HeadroomMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 500000000000000000000016 /* Build configuration list for PBXNativeTarget "HeadroomMac" */;
+			buildPhases = (
+				30000000000000000000000A /* Sources */,
+				30000000000000000000000B /* Frameworks */,
+				30000000000000000000000D /* Resources */,
+				30000000000000000000000C /* Embed Frameworks */,
+			);
+			buildRules = ();
+			dependencies = (
+				40000000000000000000000A /* PBXTargetDependency */,
+			);
+			name = HeadroomMac;
+			productName = HeadroomMac;
+			productReference = 1000000000000000000000C9 /* HeadroomMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		400000000000000000000003 /* HeadroomIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 500000000000000000000020 /* Build configuration list for PBXNativeTarget "HeadroomIOS" */;
+			buildPhases = (
+				300000000000000000000014 /* Sources */,
+				300000000000000000000015 /* Frameworks */,
+				300000000000000000000016 /* Embed Frameworks */,
+			);
+			buildRules = ();
+			dependencies = (
+				40000000000000000000000C /* PBXTargetDependency */,
+			);
+			name = HeadroomIOS;
+			productName = HeadroomIOS;
+			productReference = 1000000000000000000000CA /* HeadroomIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		500000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					400000000000000000000001 = { CreatedOnToolsVersion = 16.0; ProvisioningStyle = Manual; };
+					400000000000000000000002 = { CreatedOnToolsVersion = 16.0; ProvisioningStyle = Manual; };
+					400000000000000000000003 = { CreatedOnToolsVersion = 16.0; ProvisioningStyle = Manual; };
+				};
+			};
+			buildConfigurationList = 500000000000000000000004 /* Build configuration list for PBXProject "Headroom" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = 300000000000000000000064;
+			productRefGroup = 300000000000000000000065 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				400000000000000000000001 /* HeadroomCore */,
+				400000000000000000000002 /* HeadroomMac */,
+				400000000000000000000003 /* HeadroomIOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		30000000000000000000000D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000131 /* Headroom.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		300000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000001 /* WalletCoordinator.swift in Sources */,
+				200000000000000000000002 /* KeychainSecretStore.swift in Sources */,
+				200000000000000000000003 /* SecretStoreProtocol.swift in Sources */,
+				200000000000000000000004 /* ClaudeWebsiteSessionPolicy.swift in Sources */,
+				200000000000000000000005 /* DeepSeekBalanceResponse.swift in Sources */,
+				200000000000000000000006 /* DeepSeekClient.swift in Sources */,
+				200000000000000000000007 /* NetworkTransport.swift in Sources */,
+				200000000000000000000008 /* AppStorageManager.swift in Sources */,
+				200000000000000000000009 /* HeadroomPreferences.swift in Sources */,
+				20000000000000000000000A /* RetentionPolicy.swift in Sources */,
+				20000000000000000000000B /* StorageSchema.swift in Sources */,
+				20000000000000000000000C /* QuotaPresentation.swift in Sources */,
+				20000000000000000000000D /* SubscriptionUsage.swift in Sources */,
+				20000000000000000000000E /* UsageRefreshSchedule.swift in Sources */,
+				20000000000000000000000F /* DemoFixtures.swift in Sources */,
+				200000000000000000000010 /* FixtureEnvironment.swift in Sources */,
+				200000000000000000000011 /* Connection.swift in Sources */,
+				200000000000000000000012 /* ConnectionID.swift in Sources */,
+				200000000000000000000013 /* ConnectionState.swift in Sources */,
+				200000000000000000000014 /* CurrencyBalance.swift in Sources */,
+				200000000000000000000015 /* ProviderID.swift in Sources */,
+				200000000000000000000016 /* SnapshotDTO.swift in Sources */,
+				200000000000000000000017 /* WalletObservation.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30000000000000000000000A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000018 /* HeadroomMacApp.swift in Sources */,
+				200000000000000000000019 /* ClaudeUsageFeed.swift in Sources */,
+				20000000000000000000001A /* ClaudeWebsiteClient.swift in Sources */,
+				20000000000000000000001B /* CodexUsageClient.swift in Sources */,
+				20000000000000000000001C /* SubscriptionStore.swift in Sources */,
+				20000000000000000000001D /* MacConnectionSetupView.swift in Sources */,
+				20000000000000000000001E /* MacContentView.swift in Sources */,
+				20000000000000000000001F /* MacMenuBarView.swift in Sources */,
+				200000000000000000000020 /* MacOverviewView.swift in Sources */,
+				200000000000000000000021 /* MacSettingsView.swift in Sources */,
+				200000000000000000000022 /* MacSubscriptionsView.swift in Sources */,
+				200000000000000000000023 /* MacWalletDetailView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000014 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000024 /* HeadroomIOSApp.swift in Sources */,
+				200000000000000000000025 /* IOSConnectionSetupView.swift in Sources */,
+				200000000000000000000026 /* IOSContentView.swift in Sources */,
+				200000000000000000000027 /* IOSSettingsView.swift in Sources */,
+				200000000000000000000028 /* IOSWalletDetailView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		40000000000000000000000A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 400000000000000000000001 /* HeadroomCore */;
+			targetProxy = 40000000000000000000000B /* PBXContainerItemProxy */;
+		};
+		40000000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 400000000000000000000001 /* HeadroomCore */;
+			targetProxy = 40000000000000000000000D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		500000000000000000000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		500000000000000000000003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		50000000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundlePackageType = FMWK;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks", "@loader_path/Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.core;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		50000000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundlePackageType = FMWK;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks", "@loader_path/Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.core;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		500000000000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeadroomMac/HeadroomMac.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HeadroomMac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		500000000000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeadroomMac/HeadroomMac.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HeadroomMac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		50000000000000000000001E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeadroomIOS/HeadroomIOSEntitlements.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HeadroomIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		50000000000000000000001F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeadroomIOS/HeadroomIOSEntitlements.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HeadroomIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = org.headroom.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		500000000000000000000004 /* Build configuration list for PBXProject "Headroom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (500000000000000000000002 /* Debug */, 500000000000000000000003 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50000000000000000000000C /* Build configuration list for PBXNativeTarget "HeadroomCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (50000000000000000000000A /* Debug */, 50000000000000000000000B /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		500000000000000000000016 /* Build configuration list for PBXNativeTarget "HeadroomMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (500000000000000000000014 /* Debug */, 500000000000000000000015 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		500000000000000000000020 /* Build configuration list for PBXNativeTarget "HeadroomIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (50000000000000000000001E /* Debug */, 50000000000000000000001F /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 500000000000000000000001 /* Project object */;
+}

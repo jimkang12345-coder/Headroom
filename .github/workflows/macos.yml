@@ -1,0 +1,23 @@
+name: Mac checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  mac:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Core tests and Mac build
+        run: ./script/build_and_run.sh --mac --build-only
+      - name: Offline subscription regression
+        run: ./script/subscription-regression/run.sh
+      - name: Isolated website-session regression
+        run: ./script/website-session-regression/run.sh
