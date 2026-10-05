@@ -157,7 +157,10 @@ struct MacContentView: View {
             Image(systemName: icon).foregroundStyle(.secondary).frame(width: 20)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                if let window = usage?.windows.max(by: { $0.usedPercent < $1.usedPercent }) {
+                if let usage, !usage.isComplete, !usage.windows.isEmpty {
+                    Text("Partial reading · some limits unavailable")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else if let window = usage?.windows.max(by: { $0.usedPercent < $1.usedPercent }) {
                     Text("\(window.remainingPercent, specifier: "%.0f")% left · \(window.title)")
                         .font(.caption).foregroundStyle(.secondary)
                 } else {

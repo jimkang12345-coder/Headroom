@@ -127,6 +127,10 @@ struct MacOverviewView: View {
                 if subscriptions.refreshing && !isClaude { ProgressView().controlSize(.small) }
             }
             if let usage, !usage.windows.isEmpty {
+                if !usage.isComplete {
+                    Label("Some limits unavailable · showing reported windows", systemImage: "questionmark.circle")
+                        .font(.caption).foregroundStyle(.orange)
+                }
                 ForEach(usage.windows) { window in
                     VStack(alignment: .leading, spacing: 10) {
                         Text(window.title.replacingOccurrences(of: (isClaude ? "Claude" : title) + " · ", with: ""))

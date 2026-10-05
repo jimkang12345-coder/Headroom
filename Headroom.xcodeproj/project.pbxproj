@@ -29,28 +29,29 @@
 		200000000000000000000015 /* SecretStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000015 /* SecretStoreProtocol.swift */; };
 		200000000000000000000016 /* AppStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000016 /* AppStorageManager.swift */; };
 		200000000000000000000017 /* HeadroomPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000017 /* HeadroomPreferences.swift */; };
-		200000000000000000000018 /* RetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* RetentionPolicy.swift */; };
-		200000000000000000000019 /* StorageSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* StorageSchema.swift */; };
-		20000000000000000000001A /* QuotaPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* QuotaPresentation.swift */; };
-		20000000000000000000001B /* SubscriptionUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001B /* SubscriptionUsage.swift */; };
-		20000000000000000000001C /* UsageRefreshSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001C /* UsageRefreshSchedule.swift */; };
-		20000000000000000000001D /* HeadroomMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001D /* HeadroomMacApp.swift */; };
-		20000000000000000000001E /* ClaudeUsageFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* ClaudeUsageFeed.swift */; };
-		20000000000000000000001F /* ClaudeWebsiteClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001F /* ClaudeWebsiteClient.swift */; };
-		200000000000000000000020 /* CodexUsageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000020 /* CodexUsageClient.swift */; };
-		200000000000000000000021 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000021 /* SubscriptionStore.swift */; };
-		200000000000000000000022 /* MacConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000022 /* MacConnectionSetupView.swift */; };
-		200000000000000000000023 /* MacContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000023 /* MacContentView.swift */; };
-		200000000000000000000024 /* MacMenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000024 /* MacMenuBarView.swift */; };
-		200000000000000000000025 /* MacOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000025 /* MacOverviewView.swift */; };
-		200000000000000000000026 /* MacSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000026 /* MacSettingsView.swift */; };
-		200000000000000000000027 /* MacSubscriptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000027 /* MacSubscriptionsView.swift */; };
-		200000000000000000000028 /* MacWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000028 /* MacWalletDetailView.swift */; };
-		200000000000000000000029 /* HeadroomIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000029 /* HeadroomIOSApp.swift */; };
-		20000000000000000000002A /* IOSConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002A /* IOSConnectionSetupView.swift */; };
-		20000000000000000000002B /* IOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002B /* IOSContentView.swift */; };
-		20000000000000000000002C /* IOSSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002C /* IOSSettingsView.swift */; };
-		20000000000000000000002D /* IOSWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002D /* IOSWalletDetailView.swift */; };
+		200000000000000000000018 /* PrivateSnapshotExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* PrivateSnapshotExporter.swift */; };
+		200000000000000000000019 /* RetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* RetentionPolicy.swift */; };
+		20000000000000000000001A /* StorageSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* StorageSchema.swift */; };
+		20000000000000000000001B /* QuotaPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001B /* QuotaPresentation.swift */; };
+		20000000000000000000001C /* SubscriptionUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001C /* SubscriptionUsage.swift */; };
+		20000000000000000000001D /* UsageRefreshSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001D /* UsageRefreshSchedule.swift */; };
+		20000000000000000000001E /* HeadroomMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* HeadroomMacApp.swift */; };
+		20000000000000000000001F /* ClaudeUsageFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001F /* ClaudeUsageFeed.swift */; };
+		200000000000000000000020 /* ClaudeWebsiteClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000020 /* ClaudeWebsiteClient.swift */; };
+		200000000000000000000021 /* CodexUsageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000021 /* CodexUsageClient.swift */; };
+		200000000000000000000022 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000022 /* SubscriptionStore.swift */; };
+		200000000000000000000023 /* MacConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000023 /* MacConnectionSetupView.swift */; };
+		200000000000000000000024 /* MacContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000024 /* MacContentView.swift */; };
+		200000000000000000000025 /* MacMenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000025 /* MacMenuBarView.swift */; };
+		200000000000000000000026 /* MacOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000026 /* MacOverviewView.swift */; };
+		200000000000000000000027 /* MacSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000027 /* MacSettingsView.swift */; };
+		200000000000000000000028 /* MacSubscriptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000028 /* MacSubscriptionsView.swift */; };
+		200000000000000000000029 /* MacWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000029 /* MacWalletDetailView.swift */; };
+		20000000000000000000002A /* HeadroomIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002A /* HeadroomIOSApp.swift */; };
+		20000000000000000000002B /* IOSConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002B /* IOSConnectionSetupView.swift */; };
+		20000000000000000000002C /* IOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002C /* IOSContentView.swift */; };
+		20000000000000000000002D /* IOSSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002D /* IOSSettingsView.swift */; };
+		20000000000000000000002E /* IOSWalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002E /* IOSWalletDetailView.swift */; };
 		20000000000000000000012D /* HeadroomCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; };
 		20000000000000000000012E /* HeadroomCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; };
 		20000000000000000000012F /* HeadroomCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1000000000000000000000CB /* HeadroomCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -124,28 +125,29 @@
 		100000000000000000000015 /* SecretStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Security/SecretStoreProtocol.swift"; sourceTree = "<group>"; };
 		100000000000000000000016 /* AppStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/AppStorageManager.swift"; sourceTree = "<group>"; };
 		100000000000000000000017 /* HeadroomPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/HeadroomPreferences.swift"; sourceTree = "<group>"; };
-		100000000000000000000018 /* RetentionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/RetentionPolicy.swift"; sourceTree = "<group>"; };
-		100000000000000000000019 /* StorageSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/StorageSchema.swift"; sourceTree = "<group>"; };
-		10000000000000000000001A /* QuotaPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/QuotaPresentation.swift"; sourceTree = "<group>"; };
-		10000000000000000000001B /* SubscriptionUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/SubscriptionUsage.swift"; sourceTree = "<group>"; };
-		10000000000000000000001C /* UsageRefreshSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/UsageRefreshSchedule.swift"; sourceTree = "<group>"; };
-		10000000000000000000001D /* HeadroomMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/HeadroomMacApp.swift"; sourceTree = "<group>"; };
-		10000000000000000000001E /* ClaudeUsageFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeUsageFeed.swift"; sourceTree = "<group>"; };
-		10000000000000000000001F /* ClaudeWebsiteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeWebsiteClient.swift"; sourceTree = "<group>"; };
-		100000000000000000000020 /* CodexUsageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/CodexUsageClient.swift"; sourceTree = "<group>"; };
-		100000000000000000000021 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/SubscriptionStore.swift"; sourceTree = "<group>"; };
-		100000000000000000000022 /* MacConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacConnectionSetupView.swift"; sourceTree = "<group>"; };
-		100000000000000000000023 /* MacContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacContentView.swift"; sourceTree = "<group>"; };
-		100000000000000000000024 /* MacMenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacMenuBarView.swift"; sourceTree = "<group>"; };
-		100000000000000000000025 /* MacOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacOverviewView.swift"; sourceTree = "<group>"; };
-		100000000000000000000026 /* MacSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSettingsView.swift"; sourceTree = "<group>"; };
-		100000000000000000000027 /* MacSubscriptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSubscriptionsView.swift"; sourceTree = "<group>"; };
-		100000000000000000000028 /* MacWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacWalletDetailView.swift"; sourceTree = "<group>"; };
-		100000000000000000000029 /* HeadroomIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/HeadroomIOSApp.swift"; sourceTree = "<group>"; };
-		10000000000000000000002A /* IOSConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSConnectionSetupView.swift"; sourceTree = "<group>"; };
-		10000000000000000000002B /* IOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSContentView.swift"; sourceTree = "<group>"; };
-		10000000000000000000002C /* IOSSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSSettingsView.swift"; sourceTree = "<group>"; };
-		10000000000000000000002D /* IOSWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSWalletDetailView.swift"; sourceTree = "<group>"; };
+		100000000000000000000018 /* PrivateSnapshotExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/PrivateSnapshotExporter.swift"; sourceTree = "<group>"; };
+		100000000000000000000019 /* RetentionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/RetentionPolicy.swift"; sourceTree = "<group>"; };
+		10000000000000000000001A /* StorageSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Storage/StorageSchema.swift"; sourceTree = "<group>"; };
+		10000000000000000000001B /* QuotaPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/QuotaPresentation.swift"; sourceTree = "<group>"; };
+		10000000000000000000001C /* SubscriptionUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/SubscriptionUsage.swift"; sourceTree = "<group>"; };
+		10000000000000000000001D /* UsageRefreshSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomCore/Sources/HeadroomCore/Subscriptions/UsageRefreshSchedule.swift"; sourceTree = "<group>"; };
+		10000000000000000000001E /* HeadroomMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/HeadroomMacApp.swift"; sourceTree = "<group>"; };
+		10000000000000000000001F /* ClaudeUsageFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeUsageFeed.swift"; sourceTree = "<group>"; };
+		100000000000000000000020 /* ClaudeWebsiteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/ClaudeWebsiteClient.swift"; sourceTree = "<group>"; };
+		100000000000000000000021 /* CodexUsageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/CodexUsageClient.swift"; sourceTree = "<group>"; };
+		100000000000000000000022 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Subscriptions/SubscriptionStore.swift"; sourceTree = "<group>"; };
+		100000000000000000000023 /* MacConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacConnectionSetupView.swift"; sourceTree = "<group>"; };
+		100000000000000000000024 /* MacContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacContentView.swift"; sourceTree = "<group>"; };
+		100000000000000000000025 /* MacMenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacMenuBarView.swift"; sourceTree = "<group>"; };
+		100000000000000000000026 /* MacOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacOverviewView.swift"; sourceTree = "<group>"; };
+		100000000000000000000027 /* MacSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSettingsView.swift"; sourceTree = "<group>"; };
+		100000000000000000000028 /* MacSubscriptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacSubscriptionsView.swift"; sourceTree = "<group>"; };
+		100000000000000000000029 /* MacWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomMac/Views/MacWalletDetailView.swift"; sourceTree = "<group>"; };
+		10000000000000000000002A /* HeadroomIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/HeadroomIOSApp.swift"; sourceTree = "<group>"; };
+		10000000000000000000002B /* IOSConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSConnectionSetupView.swift"; sourceTree = "<group>"; };
+		10000000000000000000002C /* IOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSContentView.swift"; sourceTree = "<group>"; };
+		10000000000000000000002D /* IOSSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSSettingsView.swift"; sourceTree = "<group>"; };
+		10000000000000000000002E /* IOSWalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeadroomIOS/Views/IOSWalletDetailView.swift"; sourceTree = "<group>"; };
 		100000000000000000000064 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HeadroomMac/Info.plist"; sourceTree = "<group>"; };
 		100000000000000000000065 /* HeadroomMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "HeadroomMac/HeadroomMac.entitlements"; sourceTree = "<group>"; };
 		100000000000000000000066 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HeadroomIOS/Info.plist"; sourceTree = "<group>"; };
@@ -228,11 +230,12 @@
 				100000000000000000000015 /* SecretStoreProtocol.swift */,
 				100000000000000000000016 /* AppStorageManager.swift */,
 				100000000000000000000017 /* HeadroomPreferences.swift */,
-				100000000000000000000018 /* RetentionPolicy.swift */,
-				100000000000000000000019 /* StorageSchema.swift */,
-				10000000000000000000001A /* QuotaPresentation.swift */,
-				10000000000000000000001B /* SubscriptionUsage.swift */,
-				10000000000000000000001C /* UsageRefreshSchedule.swift */,
+				100000000000000000000018 /* PrivateSnapshotExporter.swift */,
+				100000000000000000000019 /* RetentionPolicy.swift */,
+				10000000000000000000001A /* StorageSchema.swift */,
+				10000000000000000000001B /* QuotaPresentation.swift */,
+				10000000000000000000001C /* SubscriptionUsage.swift */,
+				10000000000000000000001D /* UsageRefreshSchedule.swift */,
 			);
 			name = HeadroomCore;
 			sourceTree = "<group>";
@@ -240,18 +243,18 @@
 		300000000000000000000067 /* HeadroomMac */ = {
 			isa = PBXGroup;
 			children = (
-				10000000000000000000001D /* HeadroomMacApp.swift */,
-				10000000000000000000001E /* ClaudeUsageFeed.swift */,
-				10000000000000000000001F /* ClaudeWebsiteClient.swift */,
-				100000000000000000000020 /* CodexUsageClient.swift */,
-				100000000000000000000021 /* SubscriptionStore.swift */,
-				100000000000000000000022 /* MacConnectionSetupView.swift */,
-				100000000000000000000023 /* MacContentView.swift */,
-				100000000000000000000024 /* MacMenuBarView.swift */,
-				100000000000000000000025 /* MacOverviewView.swift */,
-				100000000000000000000026 /* MacSettingsView.swift */,
-				100000000000000000000027 /* MacSubscriptionsView.swift */,
-				100000000000000000000028 /* MacWalletDetailView.swift */,
+				10000000000000000000001E /* HeadroomMacApp.swift */,
+				10000000000000000000001F /* ClaudeUsageFeed.swift */,
+				100000000000000000000020 /* ClaudeWebsiteClient.swift */,
+				100000000000000000000021 /* CodexUsageClient.swift */,
+				100000000000000000000022 /* SubscriptionStore.swift */,
+				100000000000000000000023 /* MacConnectionSetupView.swift */,
+				100000000000000000000024 /* MacContentView.swift */,
+				100000000000000000000025 /* MacMenuBarView.swift */,
+				100000000000000000000026 /* MacOverviewView.swift */,
+				100000000000000000000027 /* MacSettingsView.swift */,
+				100000000000000000000028 /* MacSubscriptionsView.swift */,
+				100000000000000000000029 /* MacWalletDetailView.swift */,
 				100000000000000000000068 /* Headroom.icns */,
 				100000000000000000000064 /* Info.plist */,
 				100000000000000000000065 /* HeadroomMac.entitlements */,
@@ -262,11 +265,11 @@
 		300000000000000000000068 /* HeadroomIOS */ = {
 			isa = PBXGroup;
 			children = (
-				100000000000000000000029 /* HeadroomIOSApp.swift */,
-				10000000000000000000002A /* IOSConnectionSetupView.swift */,
-				10000000000000000000002B /* IOSContentView.swift */,
-				10000000000000000000002C /* IOSSettingsView.swift */,
-				10000000000000000000002D /* IOSWalletDetailView.swift */,
+				10000000000000000000002A /* HeadroomIOSApp.swift */,
+				10000000000000000000002B /* IOSConnectionSetupView.swift */,
+				10000000000000000000002C /* IOSContentView.swift */,
+				10000000000000000000002D /* IOSSettingsView.swift */,
+				10000000000000000000002E /* IOSWalletDetailView.swift */,
 				100000000000000000000066 /* Info.plist */,
 				100000000000000000000067 /* HeadroomIOSEntitlements.entitlements */,
 			);
@@ -395,11 +398,12 @@
 				200000000000000000000015 /* SecretStoreProtocol.swift in Sources */,
 				200000000000000000000016 /* AppStorageManager.swift in Sources */,
 				200000000000000000000017 /* HeadroomPreferences.swift in Sources */,
-				200000000000000000000018 /* RetentionPolicy.swift in Sources */,
-				200000000000000000000019 /* StorageSchema.swift in Sources */,
-				20000000000000000000001A /* QuotaPresentation.swift in Sources */,
-				20000000000000000000001B /* SubscriptionUsage.swift in Sources */,
-				20000000000000000000001C /* UsageRefreshSchedule.swift in Sources */,
+				200000000000000000000018 /* PrivateSnapshotExporter.swift in Sources */,
+				200000000000000000000019 /* RetentionPolicy.swift in Sources */,
+				20000000000000000000001A /* StorageSchema.swift in Sources */,
+				20000000000000000000001B /* QuotaPresentation.swift in Sources */,
+				20000000000000000000001C /* SubscriptionUsage.swift in Sources */,
+				20000000000000000000001D /* UsageRefreshSchedule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,18 +411,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20000000000000000000001D /* HeadroomMacApp.swift in Sources */,
-				20000000000000000000001E /* ClaudeUsageFeed.swift in Sources */,
-				20000000000000000000001F /* ClaudeWebsiteClient.swift in Sources */,
-				200000000000000000000020 /* CodexUsageClient.swift in Sources */,
-				200000000000000000000021 /* SubscriptionStore.swift in Sources */,
-				200000000000000000000022 /* MacConnectionSetupView.swift in Sources */,
-				200000000000000000000023 /* MacContentView.swift in Sources */,
-				200000000000000000000024 /* MacMenuBarView.swift in Sources */,
-				200000000000000000000025 /* MacOverviewView.swift in Sources */,
-				200000000000000000000026 /* MacSettingsView.swift in Sources */,
-				200000000000000000000027 /* MacSubscriptionsView.swift in Sources */,
-				200000000000000000000028 /* MacWalletDetailView.swift in Sources */,
+				20000000000000000000001E /* HeadroomMacApp.swift in Sources */,
+				20000000000000000000001F /* ClaudeUsageFeed.swift in Sources */,
+				200000000000000000000020 /* ClaudeWebsiteClient.swift in Sources */,
+				200000000000000000000021 /* CodexUsageClient.swift in Sources */,
+				200000000000000000000022 /* SubscriptionStore.swift in Sources */,
+				200000000000000000000023 /* MacConnectionSetupView.swift in Sources */,
+				200000000000000000000024 /* MacContentView.swift in Sources */,
+				200000000000000000000025 /* MacMenuBarView.swift in Sources */,
+				200000000000000000000026 /* MacOverviewView.swift in Sources */,
+				200000000000000000000027 /* MacSettingsView.swift in Sources */,
+				200000000000000000000028 /* MacSubscriptionsView.swift in Sources */,
+				200000000000000000000029 /* MacWalletDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,11 +430,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				200000000000000000000029 /* HeadroomIOSApp.swift in Sources */,
-				20000000000000000000002A /* IOSConnectionSetupView.swift in Sources */,
-				20000000000000000000002B /* IOSContentView.swift in Sources */,
-				20000000000000000000002C /* IOSSettingsView.swift in Sources */,
-				20000000000000000000002D /* IOSWalletDetailView.swift in Sources */,
+				20000000000000000000002A /* HeadroomIOSApp.swift in Sources */,
+				20000000000000000000002B /* IOSConnectionSetupView.swift in Sources */,
+				20000000000000000000002C /* IOSContentView.swift in Sources */,
+				20000000000000000000002D /* IOSSettingsView.swift in Sources */,
+				20000000000000000000002E /* IOSWalletDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

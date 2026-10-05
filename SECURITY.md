@@ -7,3 +7,5 @@ For vulnerabilities, use this repository's **Security → Advisories → Report 
 If a credential is accidentally exposed, revoke it with its provider. Removing a file or Git commit does not revoke access.
 
 Contributors should use mocked transports, temporary storage, random dedicated test Keychain/website-store identities and fixture screenshots. Tests must never delete a production website session or make paid model requests merely to refresh a gauge.
+
+Current safeguards and remaining defects/verification gaps are recorded in [release readiness](docs/release-readiness.md). In particular, run one normal app instance, reconnect legacy Claude Code feeds after restarting old sessions, and do not treat a successful build, synthetic regression test or notarization as a safety certification.

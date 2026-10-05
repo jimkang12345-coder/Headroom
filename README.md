@@ -4,6 +4,8 @@ A free, open-source macOS app focused on tracking **Codex and Claude Code subscr
 
 This is an early development build. Its home screen and menu bar prioritize Codex and Claude Code quota windows, remaining capacity, resets and reading freshness. Codex uses the official local client; Claude Code uses a local status-line feed, with a Claude website connection available as an alternative. Optional API trackers can be added separately: OpenAI and Anthropic organization-reported API spend with local monthly targets, plus DeepSeek wallet balances. Unknown and stale readings remain visible as such. Native desktop widgets are planned, not yet implemented. The included iOS source is deferred while Mac work is prioritized.
 
+Use readings as advisory: provider formats, account switching and multiple simultaneous client sessions still have limitations. Run one normal Headroom instance at a time; shared storage is not coordinated across app processes. This source build is intended for informed early adopters, not a verified public distribution release. See [release readiness and known limitations](docs/release-readiness.md).
+
 ## Build on Mac
 
 Requires macOS 14 or later, Xcode with the macOS SDK, Python 3 and command-line developer tools. The shared package uses Swift 6. No third-party Swift package dependencies are required. The Claude Code feed uses jq, which macOS 15 and later include; on macOS 14, install it with `brew install jq`.
@@ -30,8 +32,10 @@ swift test --package-path HeadroomCore
 **First-time setup tip for local clients:** open Codex and Claude Code and make sure you are signed in on this Mac before connecting them in Headroom. Having both clients open is helpful during initial setup, especially when using the local Claude Code feed.
 
 1. **Codex:** open **Manage Limits** in Headroom and select **Connect Codex**. Use your existing Codex sign-in with a ChatGPT subscription. The Codex window does not need to remain open after sign-in.
-2. **Claude Code — easier setup through the website:** expand **Optional Claude website source** and select **Use Claude website instead**. Sign in inside Headroom's connection window, then open **Settings → Usage**. This route avoids terminal-feed setup, reads account-wide subscription limits and does not require Claude Code to be running.
-3. **Claude Code — local terminal feed alternative:** select **Connect Claude Code**, then open a signed-in Claude Code session. Limits appear when Claude Code emits its status line; keep the session active for fresh feed readings.
+2. **Claude Code — recommended local feed:** select **Connect Claude Code**, then open a signed-in Claude Code session. Limits appear when Claude Code emits its status line; keep the session active for fresh feed readings.
+3. **Claude Code — optional website source:** expand **Optional Claude website source** and select **Use Claude website instead**. Sign in inside Headroom's connection window, then open **Settings → Usage**. This route avoids terminal-feed setup and does not require Claude Code to be running. It depends on supported English usage-page labels; other-origin and pop-up sign-in flows are not supported.
+
+**Upgrading an existing Claude Code feed:** end or restart old Claude Code sessions, then disconnect and reconnect Claude Code in Headroom. New connections use separate generation directories so retired writers cannot publish into a reconnected feed. An already-running wrapper from an older build still contains its old shared output path and can write there once after disconnect; new generations do not consume that file. Do not edit Claude's settings concurrently with connecting or disconnecting Headroom.
 
 ## Optional API trackers
 
@@ -51,7 +55,7 @@ Organization Admin keys have elevated privileges; Headroom only calls read-only 
 - Fresh readings need provider requests. Official clients and embedded sign-in pages have their own network behavior; Headroom does not claim to control every request they make.
 - Disconnecting Claude clears Headroom's dedicated website session. Cleanup failures are shown and block reconnect until retried.
 - Embedded main-frame navigation is restricted to exact HTTPS origins. Other-origin and pop-up authentication flows are currently unsupported; the Claude Code feed is an alternative.
-- JSON backups exclude API keys but contain account labels, balance history, API cost reports and local targets. Treat them as private backups.
+- JSON backups exclude API keys but contain account labels, balance history, API cost reports and local targets. They are staged with owner-only permissions before publication; export fails if that protection cannot be enforced. Choose a regular file in a local folder supporting those permissions. Treat backups as private even after export.
 
 Read [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md) and [ROADMAP.md](ROADMAP.md) for current boundaries and planned work. The first public app uses a neutral identity; it does not automatically migrate credentials from earlier private builds. Keep existing installations until a migration is deliberately reviewed.
 

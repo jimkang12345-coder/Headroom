@@ -402,7 +402,8 @@ struct IOSEditConnectionSheet: View {
                 try await coordinator.updateConnection(
                     id: connection.id,
                     userLabel: userLabel.trimmingCharacters(in: .whitespacesAndNewlines),
-                    newApiKey: keyToPass
+                    newApiKey: keyToPass,
+                    monthlyBudget: connection.monthlyBudget
                 )
                 dismiss()
             } catch {

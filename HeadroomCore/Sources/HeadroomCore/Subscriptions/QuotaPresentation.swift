@@ -7,13 +7,15 @@ public enum QuotaPresentation {
         if let windowID {
             selected = usage?.windows.first(where: { $0.id == windowID })
         } else {
+            guard usage?.isComplete == true else { return "—" }
             selected = usage?.windows.max(by: { $0.usedPercent < $1.usedPercent })
         }
-        guard let window = selected else { return "—" }
+        guard let window = selected, window.usedPercent.isFinite, (0...100).contains(window.usedPercent) else { return "—" }
         return String(format: "%.0f%%", window.remainingPercent)
     }
 
     public static func countdown(_ window: QuotaWindow, observedAt: Date, now: Date, calendar: Calendar = .current) -> String {
+        guard QuotaWindow.usableResetDate(now) != nil else { return "Reset time unavailable" }
         let inferred = window.resetsAt == nil
         guard let reset = window.resetsAt ?? websiteReset(window.resetText, observedAt: observedAt, calendar: calendar) else {
             return window.resetText ?? "Reset time unavailable"
@@ -22,8 +24,9 @@ public enum QuotaPresentation {
             return "Reset time awaiting update"
         }
         let seconds = reset.timeIntervalSince(now)
+        guard seconds.isFinite else { return "Reset time unavailable" }
         guard seconds > 0 else { return "Reset due · awaiting update" }
-        let minutes = Int(ceil(seconds / 60))
+        guard let minutes = Int(exactly: ceil(seconds / 60)) else { return "Reset time unavailable" }
         let days = minutes / 1440, hours = (minutes % 1440) / 60, mins = minutes % 60
         let duration: String
         if days > 0 { duration = "\(days)d \(hours)h" }
@@ -35,7 +38,7 @@ public enum QuotaPresentation {
     /// Website reset wording is in the local browser timezone. Anchor once to the
     /// observation time so stale data cannot silently roll to tomorrow/next week.
     public static func websiteReset(_ text: String?, observedAt: Date, calendar: Calendar = .current) -> Date? {
-        guard let text else { return nil }
+        guard let text, QuotaWindow.usableResetDate(observedAt) != nil else { return nil }
         let normalized = text.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
         let pattern = #"^Resets (?:(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) (?:at )?|at )(\d{1,2}):(\d{2}) (AM|PM)$"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
@@ -51,6 +54,6 @@ public enum QuotaPresentation {
         if let day = group(1) {
             components.weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].firstIndex(of: day).map { $0 + 1 }
         }
-        return calendar.nextDate(after: observedAt.addingTimeInterval(-1), matching: components, matchingPolicy: .nextTime, repeatedTimePolicy: .first)
+        return QuotaWindow.usableResetDate(calendar.nextDate(after: observedAt.addingTimeInterval(-1), matching: components, matchingPolicy: .nextTime, repeatedTimePolicy: .first))
     }
 }

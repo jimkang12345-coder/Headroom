@@ -119,6 +119,10 @@ struct MacMenuBarView: View {
                 }
             }
             if let usage, !usage.windows.isEmpty {
+                if !usage.isComplete {
+                    Label("Some limits unavailable", systemImage: "questionmark.circle")
+                        .font(.caption2).foregroundStyle(.orange)
+                }
                 ForEach(usage.windows) { window in
                     VStack(alignment: .leading, spacing: 5) {
                         HStack {

@@ -3,6 +3,115 @@ import XCTest
 
 final class MoneySemanticsTests: XCTestCase {
 
+    func testBoundedNormalizationPreservesFormattingAndRawAmounts() throws {
+        let cases = [
+            (" \n+00012.3400\t", "12.34"),
+            ("-.5000", "-0.5"),
+            ("+12.", "12"),
+            ("-000.0000", "0"),
+            (".0", "0"),
+            ("\u{2003}001.2500\u{2003}", "1.25")
+        ]
+        for (raw, normalized) in cases {
+            XCTAssertEqual(CurrencyBalance.normalizeDecimalString(raw), normalized)
+            let balance = try CurrencyBalance.parseStrict(
+                currency: "USD", totalString: raw, grantedString: "-000.000", toppedUpString: raw
+            )
+            XCTAssertEqual(balance.totalBalance, Decimal(string: normalized))
+            XCTAssertEqual(balance.grantedBalance, .zero)
+            XCTAssertEqual(balance.rawTotal, raw)
+            XCTAssertEqual(balance.rawGranted, "-000.000")
+            XCTAssertEqual(balance.rawToppedUp, raw)
+        }
+    }
+
+    func testDecimalLexemeLimitIsInclusiveAndNeverTruncates() throws {
+        let limit = CurrencyBalance.maxDecimalStringBytes
+        for raw in [String(repeating: "0", count: limit - 1) + "1", "1." + String(repeating: "0", count: limit - 2)] {
+            XCTAssertEqual(raw.utf8.count, limit)
+            XCTAssertEqual(CurrencyBalance.normalizeDecimalString(raw), "1")
+            XCTAssertEqual(try CurrencyBalance.parseDecimalStrict(raw, fieldName: "amount"), 1)
+        }
+        let oversized = [
+            String(repeating: "0", count: limit) + "1",
+            "1." + String(repeating: "0", count: limit - 1),
+            String(repeating: " ", count: limit) + "1",
+            String(repeating: "\u{2003}", count: limit / 3 + 1) + "1",
+            String(repeating: "0", count: 100_000) + "1"
+        ]
+        for raw in oversized {
+            XCTAssertNil(CurrencyBalance.normalizeDecimalString(raw))
+            XCTAssertThrowsError(try CurrencyBalance.parseDecimalStrict(raw, fieldName: "amount")) { error in
+                XCTAssertEqual(error as? CurrencyBalance.ParseError, .invalidDecimalString(field: "amount"))
+            }
+        }
+        for raw in ["", " ", "+", "-.", ".", "1.2.3", "1e2", "1 2", "１２", "NaN"] {
+            XCTAssertNil(CurrencyBalance.normalizeDecimalString(raw))
+        }
+    }
+
+    func testScientificAPICostExpansionStillAcceptsExactValues() throws {
+        // A valid JSON number expands beyond the API's 160-byte raw-input limit.
+        let mantissa = "1234567890123456789012345678901234567"
+        let expanded = mantissa + String(repeating: "0", count: 128)
+        XCTAssertEqual(expanded.utf8.count, 165)
+        guard case .number(let lexeme) = try APICostJSON.parse(Data((mantissa + "e128").utf8)) else {
+            return XCTFail("Expected a JSON numeric lexeme")
+        }
+        let parsed = try APICostMoney.decimal(lexeme, allowExponent: true)
+        XCTAssertEqual(NSDecimalNumber(decimal: parsed).stringValue, expanded)
+
+        let unit = "1" + String(repeating: "0", count: 128)
+        let parsedUnit = try APICostMoney.decimal("1e128", allowExponent: true)
+        XCTAssertEqual(NSDecimalNumber(decimal: parsedUnit).stringValue, unit)
+
+        // The helper also accepts redundant leading zeros; this is not a JSON numeric lexeme.
+        // Its 159-byte input expands to 283 bytes, so the shared bound must accommodate it.
+        let paddedUnit = String(repeating: "0", count: 154) + "1e128"
+        XCTAssertEqual(paddedUnit.utf8.count, 159)
+        let parsedPaddedUnit = try APICostMoney.decimal(paddedUnit, allowExponent: true)
+        XCTAssertEqual(NSDecimalNumber(decimal: parsedPaddedUnit).stringValue, unit)
+    }
+
+    func testScientificAPICostPreservesRejectionOfUnsupportedExactRepresentations() {
+        // The original Scanner-based parser rejects these expanded fractional representations.
+        // Their mathematical values do not justify weakening the exact round-trip check.
+        let unsupported = [
+            "1." + String(repeating: "0", count: 153) + "e-128",
+            "-1." + String(repeating: "0", count: 152) + "e-128",
+            "0." + String(repeating: "0", count: 153) + "e-128",
+            "0.123456789012345678901234567890123456789012345678901"
+        ]
+        for raw in unsupported {
+            XCTAssertThrowsError(try APICostMoney.decimal(raw, allowExponent: true)) { error in
+                XCTAssertEqual(error as? APICostError, .malformedResponse)
+            }
+        }
+    }
+
+    func testDeepSeekRejectsOversizedDecimalInEachBalanceFieldBelowResponseLimit() async throws {
+        let oversized = String(repeating: "0", count: 10_000) + "1"
+        for field in 0..<3 {
+            var amounts = ["1.00", "0.00", "1.00"]
+            amounts[field] = oversized
+            let data = try JSONEncoder().encode(RawDeepSeekResponse(is_available: true, balance_infos: [
+                RawBalanceInfo(currency: "USD", total_balance: amounts[0], granted_balance: amounts[1], topped_up_balance: amounts[2])
+            ]))
+            XCTAssertLessThan(data.count, DeepSeekClient.maxResponseSizeBytes)
+            let transport = MockNetworkTransport { request in
+                (data, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+            }
+            do {
+                _ = try await DeepSeekClient(transport: transport).fetchBalance(
+                    apiKey: "sk-SYNTHETIC_NUMERIC_TEST", connectionId: ConnectionID(), generationId: ConnectionGenerationID()
+                )
+                XCTFail("Expected an oversized decimal to fail in field \(field)")
+            } catch {
+                XCTAssertEqual(error as? DeepSeekError, .malformedResponse)
+            }
+        }
+    }
+
     func testExactDecimalsAndSeparateCurrencies() throws {
         let jsonString = """
         {

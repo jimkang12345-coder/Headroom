@@ -76,16 +76,17 @@ public struct CurrencyBalance: Hashable, Codable, Sendable, Identifiable {
         )
     }
 
+    // Includes signs and surrounding whitespace. This also accommodates the plain-decimal
+    // expansion of APICostMoney's 160-byte inputs with exponents from -128 through 128.
+    static let maxDecimalStringBytes = 320
+
     public static func parseDecimalStrict(_ raw: String, fieldName: String) throws -> Decimal {
+        // Normalize first so the shared input bound applies before trimming or scanning.
+        guard let normalizedInput = normalizeDecimalString(raw) else {
+            throw ParseError.invalidDecimalString(field: fieldName)
+        }
+
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            throw ParseError.invalidDecimalString(field: fieldName)
-        }
-
-        guard let normalizedInput = normalizeDecimalString(trimmed) else {
-            throw ParseError.invalidDecimalString(field: fieldName)
-        }
-
         let scanner = Scanner(string: trimmed)
         scanner.locale = Locale(identifier: "en_US_POSIX")
         guard let decimal = scanner.scanDecimal(), scanner.isAtEnd else {
@@ -108,52 +109,48 @@ public struct CurrencyBalance: Hashable, Codable, Sendable, Identifiable {
 
     /// Lossless normalization of a decimal string for exact comparison:
     /// strips harmless formatting differences (leading zeros in integer part, trailing zeros in fraction part)
-    /// without rounding or losing significant digits.
+    /// without rounding or losing significant digits. Inputs exceeding 320 UTF-8 bytes are rejected.
     public static func normalizeDecimalString(_ raw: String) -> String? {
+        // Inspect only a bounded prefix, including whitespace, before allocating or trimming.
+        guard raw.utf8.prefix(maxDecimalStringBytes + 1).count <= maxDecimalStringBytes else { return nil }
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
-        var s = trimmed
-        var isNegative = false
-        if s.hasPrefix("-") {
-            isNegative = true
-            s.removeFirst()
-        } else if s.hasPrefix("+") {
-            s.removeFirst()
+        let bytes = Array(trimmed.utf8)
+        let isNegative = bytes[0] == 45
+        var integerStart = 0
+        if isNegative || bytes[0] == 43 {
+            integerStart += 1
         }
+        let integerEnd = bytes[integerStart...].firstIndex(of: 46) ?? bytes.endIndex
+        let fractionStart = integerEnd < bytes.endIndex ? integerEnd + 1 : integerEnd
+        var fractionEnd = bytes.endIndex
 
-        let parts = s.split(separator: ".", omittingEmptySubsequences: false)
-        guard parts.count <= 2 else { return nil }
-
-        var intPart = String(parts[0])
-        var fracPart = parts.count == 2 ? String(parts[1]) : ""
-
-        // Every character must be an ASCII digit
-        guard intPart.allSatisfy({ $0 >= "0" && $0 <= "9" }) &&
-              fracPart.allSatisfy({ $0 >= "0" && $0 <= "9" }) else {
+        // An additional decimal point or any non-ASCII digit is invalid.
+        guard integerStart < integerEnd || fractionStart < fractionEnd,
+              bytes[integerStart..<integerEnd].allSatisfy({ (48...57).contains($0) }),
+              bytes[fractionStart..<fractionEnd].allSatisfy({ (48...57).contains($0) }) else {
             return nil
         }
-        guard !intPart.isEmpty || !fracPart.isEmpty else { return nil }
-        if intPart.isEmpty { intPart = "0" }
 
-        // Strip leading zeros in integer part
-        while intPart.count > 1 && intPart.hasPrefix("0") {
-            intPart.removeFirst()
+        // Move slice boundaries in linear time; repeated String.count/removal can be quadratic.
+        while integerStart < integerEnd && bytes[integerStart] == 48 {
+            integerStart += 1
+        }
+        while fractionEnd > fractionStart && bytes[fractionEnd - 1] == 48 {
+            fractionEnd -= 1
         }
 
-        // Strip trailing zeros in fraction part
-        while fracPart.hasSuffix("0") {
-            fracPart.removeLast()
-        }
-
-        if intPart == "0" && fracPart.isEmpty {
+        if integerStart == integerEnd && fractionStart == fractionEnd {
             return "0"
         }
 
         let sign = isNegative ? "-" : ""
-        if fracPart.isEmpty {
+        let intPart = integerStart == integerEnd ? "0" : String(decoding: bytes[integerStart..<integerEnd], as: UTF8.self)
+        if fractionStart == fractionEnd {
             return "\(sign)\(intPart)"
         } else {
+            let fracPart = String(decoding: bytes[fractionStart..<fractionEnd], as: UTF8.self)
             return "\(sign)\(intPart).\(fracPart)"
         }
     }

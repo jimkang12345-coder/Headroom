@@ -117,6 +117,10 @@ struct MacSubscriptionsView: View {
     @ViewBuilder
     private func quota(_ usage: SubscriptionUsage, isClaude: Bool, failed: Bool) -> some View {
         if let plan = usage.plan { Text("Plan: \(plan)").font(.caption).foregroundStyle(.secondary) }
+        if !usage.isComplete, !usage.windows.isEmpty {
+            Label("Some limits unavailable · showing reported windows", systemImage: "questionmark.circle")
+                .font(.caption).foregroundStyle(.orange)
+        }
         ForEach(usage.windows) { window in
             VStack(alignment: .leading, spacing: 5) {
                 HStack {

@@ -166,7 +166,7 @@ final class SubscriptionStore: ObservableObject {
         var feedCleanupFailed = false
         do {
             // Remove only Headroom's owned wrapper; preserve independently changed settings.
-            if hadCodeConnection || claudeFeed.isInstalled || FileManager.default.fileExists(atPath: claudeFeed.feed.path) {
+            if hadCodeConnection || claudeFeed.needsCleanup {
                 try claudeFeed.uninstall()
             }
         } catch { feedCleanupFailed = true }
@@ -199,7 +199,7 @@ final class SubscriptionStore: ObservableObject {
                 guard generation == requestGeneration, codexConnected else { return }
                 succeeded = true
                 codex = usage
-                codexMessage = usage.windows.isEmpty ? "No subscription limits were reported. Check that Codex is signed in with ChatGPT rather than an API key." : nil
+                codexMessage = usage.windows.isEmpty ? "No usable subscription limits were reported. Check that Codex is signed in with ChatGPT rather than an API key." : nil
             } catch {
                 guard generation == requestGeneration, codexConnected else { return }
                 codexMessage = error.localizedDescription
@@ -208,12 +208,14 @@ final class SubscriptionStore: ObservableObject {
     }
     func freshness(_ usage: SubscriptionUsage, isClaude: Bool) -> String {
         if isSyntheticMode { return "Synthetic sample · no provider connection" }
+        if (isClaude ? claudeMessage : codexMessage) != nil { return "Last known reading · update unavailable" }
         let age = max(0, displayTime.timeIntervalSince(usage.observedAt))
         let resetPassed = usage.windows.contains { $0.resetsAt.map { $0 <= displayTime } ?? false }
         if resetPassed { return "Reset passed · awaiting provider update" }
         if age > 120 {
             return isClaude ? (claudeUsesWebsite ? "Claude website update delayed" : "Awaiting fresh Claude Code data") : "Last known reading · refresh delayed"
         }
+        if !usage.isComplete { return "Partial reading · some limits unavailable" }
         return isClaude ? (claudeUsesWebsite ? "Checked Claude account usage" : "Claude Code feed received") : "Checked with Codex"
     }
 
@@ -243,18 +245,19 @@ final class SubscriptionStore: ObservableObject {
                 claudeMessage = "Claude’s status line has changed. Disconnect and reconnect to bind the feed again."
                 return
             }
-            guard FileManager.default.fileExists(atPath: claudeFeed.feed.path) else {
+            let feedURL = claudeFeed.feed
+            guard FileManager.default.fileExists(atPath: feedURL.path) else {
                 claudeMessage = "Awaiting Claude Code. Open a signed-in session on this Mac; limits appear when Claude emits its status line. Requires Claude Code 2.1.80 or later."
                 return
             }
-            let attributes = try FileManager.default.attributesOfItem(atPath: claudeFeed.feed.path)
+            let attributes = try FileManager.default.attributesOfItem(atPath: feedURL.path)
             guard (attributes[.size] as? NSNumber)?.intValue ?? Int.max <= 65_536 else { throw UsageError.message("Claude’s feed is too large.") }
             let timestamp = attributes[.modificationDate] as? Date ?? .distantPast
             guard timestamp != lastClaudeTimestamp else { return }
-            let usage = try SubscriptionUsage.claude(Data(contentsOf: claudeFeed.feed), now: timestamp)
+            let usage = try SubscriptionUsage.claude(Data(contentsOf: feedURL), now: timestamp)
             lastClaudeTimestamp = timestamp
             claude = usage
-            claudeMessage = usage.windows.isEmpty ? "Claude has not reported subscription limits yet. Use a Pro or Max session in Claude Code 2.1.80 or later. Context usage is not subscription usage." : nil
+            claudeMessage = usage.windows.isEmpty ? "Claude has not reported usable subscription limits yet. Use a Pro or Max session in Claude Code 2.1.80 or later. Context usage is not subscription usage." : nil
         } catch { claudeMessage = error.localizedDescription }
     }
 }

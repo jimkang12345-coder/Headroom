@@ -28,7 +28,7 @@ struct IOSSettingsView: View {
 
                 Section(
                     header: Text("Testing & Demo Mode"),
-                    footer: Text(coordinator.isDemoMode ? "Modifications and imports are disabled in Demo Mode. Exiting restores your real store." : "Demo mode provides synthetic multi-currency balances with zero network calls and zero Keychain access.")
+                    footer: Text(coordinator.isDemoMode ? "Modifications and imports are disabled in Demo Mode. Exiting restores your real store." : "Demo Mode shows synthetic balances. A normal launch may already have loaded private state or started provider work before you switch modes.")
                 ) {
                     Toggle("Demo Mode Active", isOn: Binding(
                         get: { coordinator.isDemoMode },
@@ -100,7 +100,7 @@ struct IOSSettingsView: View {
         do {
             let data = try coordinator.exportSnapshot()
             let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Headroom-Backup-\(Int(Date().timeIntervalSince1970)).json")
-            try data.write(to: tempURL)
+            try PrivateSnapshotExporter.write(data, to: tempURL)
             exportURL = tempURL
             isShowingShareSheet = true
             statusMessage = coordinator.isDemoMode ? "Synthetic demo backup ready for sharing." : "Backup ready for sharing."

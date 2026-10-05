@@ -28,4 +28,31 @@ final class QuotaPresentationTests: XCTestCase {
         let usage = try! SubscriptionUsage.claude(Data(#"{"rate_limits":{"five_hour":{"used_percentage":60},"seven_day":{"used_percentage":9}}}"#.utf8))
         XCTAssertEqual(QuotaPresentation.menuPercentage(usage), "40%")
     }
+
+    func testPublicWindowsRejectDatesOutsideDisplayRange() {
+        for timestamp in [Double.nan, .infinity, -.infinity, 1e30, -1e30, Double(Int.max), Double.greatestFiniteMagnitude] {
+            let window = QuotaWindow(id: "test", title: "Weekly", usedPercent: 20, resetsAt: Date(timeIntervalSince1970: timestamp))
+            XCTAssertNil(window.resetsAt)
+            XCTAssertEqual(QuotaPresentation.countdown(window, observedAt: now, now: now), "Reset time unavailable")
+        }
+        let valid = QuotaWindow(id: "test", title: "Weekly", usedPercent: 20, resetsAt: .distantFuture)
+        XCTAssertEqual(valid.resetsAt, .distantFuture)
+        XCTAssertTrue(QuotaPresentation.countdown(valid, observedAt: now, now: now).hasPrefix("Resets in "))
+    }
+
+    func testCountdownAndWebsiteResetRejectInvalidClockDates() {
+        let window = QuotaWindow(id: "test", title: "Weekly", usedPercent: 20, resetsAt: now.addingTimeInterval(60))
+        for timestamp in [Double.nan, .infinity, -.infinity, -Double(Int.max) * 60, 1e30] {
+            let invalid = Date(timeIntervalSince1970: timestamp)
+            XCTAssertEqual(QuotaPresentation.countdown(window, observedAt: now, now: invalid), "Reset time unavailable")
+            XCTAssertNil(QuotaPresentation.websiteReset("Resets at 11:50 AM", observedAt: invalid))
+        }
+        XCTAssertEqual(QuotaPresentation.countdown(window, observedAt: now, now: now), "Resets in 1m")
+    }
+
+    func testExplicitUnknownWindowDoesNotBorrowKnownPercentage() throws {
+        let usage = try SubscriptionUsage.codex(Data(#"{"rateLimits":{"primary":{"usedPercent":5},"secondary":{}}}"#.utf8))
+        XCTAssertEqual(QuotaPresentation.menuPercentage(usage, windowID: "codex.secondary"), "—")
+        XCTAssertEqual(QuotaPresentation.menuPercentage(usage, windowID: "other.primary"), "—")
+    }
 }
