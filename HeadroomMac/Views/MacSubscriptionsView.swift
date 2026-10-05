@@ -2,9 +2,16 @@ import SwiftUI
 import AppKit
 import HeadroomCore
 
+/// The website source loads claude.ai automatically, so people choose it with the provider's terms in view.
+enum ClaudeWebsiteTerms {
+    static let warning = "The website source reloads claude.ai automatically about every 30 seconds. Anthropic’s Consumer Terms prohibit accessing its services through automated means, except with an API key or where Anthropic explicitly permits it, so using this option may put your Claude account at risk. The Claude Code feed is the recommended source."
+    static let url = URL(string: "https://www.anthropic.com/legal/consumer-terms")!
+}
+
 struct MacSubscriptionsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var store: SubscriptionStore
+    @State private var confirmingWebsite = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -83,8 +90,27 @@ struct MacSubscriptionsView: View {
                                 VStack(alignment: .leading, spacing: 10) {
                                     Text("Read the account usage page using a separate sign-in session. The provider reports account-wide limits; this is an alternative to the Code feed.")
                                         .font(.callout).foregroundStyle(.secondary)
-                                    Button(store.claudeUsesWebsite ? "Open website connection" : "Use Claude website instead") { Task { await store.connectClaudeWebsite() } }
+                                    Label {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(ClaudeWebsiteTerms.warning)
+                                            Link("Read Anthropic’s Consumer Terms", destination: ClaudeWebsiteTerms.url)
+                                        }
+                                    } icon: {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                    }
+                                    .font(.callout).foregroundStyle(.orange)
+                                    Button(store.claudeUsesWebsite ? "Open website connection" : "Use Claude website instead") {
+                                        // Switching on requires acknowledging the terms warning; reopening does not.
+                                        if store.claudeUsesWebsite { Task { await store.connectClaudeWebsite() } }
+                                        else { confirmingWebsite = true }
+                                    }
                                         .disabled(claudeActionsDisabled)
+                                        .confirmationDialog("Use the Claude website source?", isPresented: $confirmingWebsite, titleVisibility: .visible) {
+                                            Button("Use website source") { Task { await store.connectClaudeWebsite() } }
+                                            Button("Cancel", role: .cancel) {}
+                                        } message: {
+                                            Text(ClaudeWebsiteTerms.warning)
+                                        }
                                     Text("Switching from the website removes Headroom’s saved sign-in session. Disconnect also deletes it; cleanup failures must be retried. Main navigation stays on claude.ai, and external sign-in pages and pop-ups are currently blocked.")
                                         .font(.caption).foregroundStyle(.secondary)
                                     Link("Claude usage settings", destination: URL(string: "https://claude.ai/settings/usage")!)
@@ -95,7 +121,7 @@ struct MacSubscriptionsView: View {
                             if let usage = store.claude { quota(usage, isClaude: true, failed: store.claudeMessage != nil) }
                         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Text("Codex checks every 15 seconds, with slower retries on errors. The Claude Code feed is checked every 2 seconds; the optional website source checks every 30 seconds. Provider reporting can lag. API budgets are separate optional trackers.")
+                    Text("Codex checks every 60 seconds, with slower retries on errors. The Claude Code feed is checked every 2 seconds; the optional website source checks every 30 seconds. Provider reporting can lag. API budgets are separate optional trackers.")
                         .font(.caption).foregroundStyle(.secondary)
                 }.padding(24)
             }

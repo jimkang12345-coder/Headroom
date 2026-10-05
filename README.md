@@ -43,6 +43,7 @@ Organization Admin keys have elevated privileges; Headroom only calls read-only 
 - Fresh readings need provider requests. Official clients and embedded sign-in pages have their own network behavior; Headroom does not claim to control every request they make.
 - Disconnecting Claude clears Headroom's dedicated website session. Cleanup failures are shown and block reconnect until retried.
 - Embedded main-frame navigation is restricted to exact HTTPS origins. Other-origin and pop-up authentication flows are currently unsupported; the Claude Code feed is an alternative.
+- The optional Claude website source reloads claude.ai automatically about every 30 seconds. Anthropic's [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) prohibit accessing its services through automated means except with an API key or where Anthropic explicitly permits it, so this option may put your Claude account at risk. The app asks for confirmation before enabling it; the Claude Code feed is the recommended source.
 - JSON backups exclude API keys but contain account labels, balance history, API cost reports and local targets. Treat them as private backups.
 
 Read [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md) and [ROADMAP.md](ROADMAP.md) for current boundaries and planned work. The first public app uses a neutral identity; it does not automatically migrate credentials from earlier private builds. Keep existing installations until a migration is deliberately reviewed.

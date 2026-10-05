@@ -49,7 +49,7 @@ struct MacOverviewView: View {
                 if focusedProvider == nil {
                     apiTrackers
                 }
-                Text("Codex checks about every 15 seconds while active; failures back off. Claude Code reads its local status-line feed when the client reports it, so limits can lag. The optional Claude website source checks about every 30 seconds while active.")
+                Text("Codex checks about every 60 seconds while active; failures back off. Claude Code reads its local status-line feed when the client reports it, so limits can lag. The optional Claude website source checks about every 30 seconds while active.")
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(22)
         }
@@ -125,6 +125,10 @@ struct MacOverviewView: View {
                 }
                 Spacer()
                 if subscriptions.refreshing && !isClaude { ProgressView().controlSize(.small) }
+            }
+            if isClaude && subscriptions.claudeUsesWebsite && !subscriptions.isSyntheticMode {
+                Label("Website source may conflict with Anthropic’s terms", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption).foregroundStyle(.orange).help(ClaudeWebsiteTerms.warning)
             }
             if let usage, !usage.windows.isEmpty {
                 ForEach(usage.windows) { window in

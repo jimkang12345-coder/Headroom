@@ -8,13 +8,13 @@ final class UsageRefreshScheduleTests: XCTestCase {
         XCTAssertTrue(schedule.begin(at: start))
         XCTAssertFalse(schedule.begin(at: start.addingTimeInterval(20), forced: true))
         schedule.finish(at: start.addingTimeInterval(1), succeeded: true)
-        XCTAssertFalse(schedule.begin(at: start.addingTimeInterval(14)))
-        XCTAssertTrue(schedule.begin(at: start.addingTimeInterval(15)))
+        XCTAssertFalse(schedule.begin(at: start.addingTimeInterval(59)))
+        XCTAssertTrue(schedule.begin(at: start.addingTimeInterval(60)))
     }
     func testBackoffAndRecovery() {
         var schedule = UsageRefreshSchedule()
         var now = start
-        for delay in [30.0, 60, 120, 240, 300, 300] {
+        for delay in [60.0, 120, 240, 300, 300, 300] {
             XCTAssertTrue(schedule.begin(at: now))
             schedule.finish(at: now, succeeded: false)
             XCTAssertEqual(schedule.nextAttempt.timeIntervalSince(now), delay)
@@ -24,7 +24,7 @@ final class UsageRefreshScheduleTests: XCTestCase {
         XCTAssertTrue(schedule.begin(at: now))
         schedule.finish(at: now, succeeded: true)
         XCTAssertEqual(schedule.failures, 0)
-        XCTAssertEqual(schedule.nextAttempt.timeIntervalSince(now), 15)
+        XCTAssertEqual(schedule.nextAttempt.timeIntervalSince(now), 60)
     }
     func testManualThrottleAndWake() {
         var schedule = UsageRefreshSchedule()
