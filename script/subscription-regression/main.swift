@@ -215,15 +215,53 @@ try fm.removeItem(at: collisionRetired)
 try retry.uninstall()
 try restored(retry, to: ["statusLine": ["command": "printf external"]])
 
-// A directory that permits retirement but not child deletion leaves detectable retired
-// artifacts after settings were restored; a later cleanup must remove those too.
+// Darwin can reject renaming a write-disabled directory (rename(2), CONFORMANCE).
+// Exercise that permission failure without assuming which cleanup phase the OS rejects.
+try retry.install()
+let readOnly = retry.feed.deletingLastPathComponent()
+let retiredReadOnly = retry.directory.appendingPathComponent("retired-" + readOnly.lastPathComponent)
+let readOnlySettings = try Data(contentsOf: retry.settings)
+let readOnlyBackup = try Data(contentsOf: readOnly.appendingPathComponent("previous-statusline.json"))
+try fm.setAttributes([.posixPermissions: 0o500], ofItemAtPath: readOnly.path)
+expectFailure("write-disabled generation cleanup") { try retry.uninstall() }
+check(retry.needsCleanup, "Permission failure lost cleanup state")
+if fm.fileExists(atPath: readOnly.path) {
+    check(!fm.fileExists(atPath: retiredReadOnly.path), "Failed retirement also created a retired copy")
+    check(try Data(contentsOf: retry.settings) == readOnlySettings, "Failed retirement changed settings")
+    check(try Data(contentsOf: readOnly.appendingPathComponent("previous-statusline.json")) == readOnlyBackup,
+          "Failed retirement changed the original backup")
+    try retry.install()
+    check(retry.feed.deletingLastPathComponent() == readOnly, "Idempotent install replaced an unretired generation")
+    check(try Data(contentsOf: retry.settings) == readOnlySettings, "Idempotent install changed failed-retirement settings")
+    try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: readOnly.path)
+} else {
+    check(!retry.isInstalled && fm.fileExists(atPath: retiredReadOnly.path), "Permission failure lost retired artifacts")
+    check(try config(retry) as NSDictionary == ["statusLine": ["command": "printf external"]] as NSDictionary,
+          "Post-retirement failure did not restore settings")
+    try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: retiredReadOnly.path)
+}
+try retry.uninstall()
+try restored(retry, to: ["statusLine": ["command": "printf external"]])
+
+// Keep the generation writable so retirement is permitted on macOS 15 too. A nested
+// read-only directory with a real child then forces failure during recursive deletion.
 try retry.install()
 let undeletable = retry.feed.deletingLastPathComponent()
 let retiredUndeletable = retry.directory.appendingPathComponent("retired-" + undeletable.lastPathComponent)
-try fm.setAttributes([.posixPermissions: 0o500], ofItemAtPath: undeletable.path)
+let blocked = undeletable.appendingPathComponent("blocked", isDirectory: true)
+let marker = Data("synthetic retained cleanup payload".utf8)
+try fm.createDirectory(at: blocked, withIntermediateDirectories: false)
+try marker.write(to: blocked.appendingPathComponent("marker"))
+try fm.setAttributes([.posixPermissions: 0o500], ofItemAtPath: blocked.path)
 expectFailure("retired directory deletion") { try retry.uninstall() }
 check(!retry.isInstalled && retry.needsCleanup && !fm.fileExists(atPath: undeletable.path), "Deletion error lost retired cleanup state")
-try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: retiredUndeletable.path)
+let retiredBlocked = retiredUndeletable.appendingPathComponent("blocked", isDirectory: true)
+check(try Data(contentsOf: retiredBlocked.appendingPathComponent("marker")) == marker, "Deletion failure lost blocked payload")
+check(try config(retry) as NSDictionary == ["statusLine": ["command": "printf external"]] as NSDictionary,
+      "Deletion failure did not preserve restored settings")
+expectFailure("reconnect before retired deletion completes") { try retry.install() }
+check(!retry.isInstalled && retry.needsCleanup, "Failed reconnect lost cleanup state or installed a writer")
+try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: retiredBlocked.path)
 try retry.uninstall()
 try restored(retry, to: ["statusLine": ["command": "printf external"]])
 print("PASS: restore, malformed-settings, retirement/deletion errors propagate; retired/orphan cleanup retries without a feed")
