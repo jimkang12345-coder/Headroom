@@ -25,6 +25,14 @@ swift test --package-path HeadroomCore
 ./script/website-session-regression/run.sh
 ```
 
+## Connect Codex and Claude Code
+
+**First-time setup tip for local clients:** open Codex and Claude Code and make sure you are signed in on this Mac before connecting them in Headroom. Having both clients open is helpful during initial setup, especially when using the local Claude Code feed.
+
+1. **Codex:** open **Manage Limits** in Headroom and select **Connect Codex**. Use your existing Codex sign-in with a ChatGPT subscription. The Codex window does not need to remain open after sign-in.
+2. **Claude Code — easier setup through the website:** expand **Optional Claude website source** and select **Use Claude website instead**. Sign in inside Headroom's connection window, then open **Settings → Usage**. This route avoids terminal-feed setup, reads account-wide subscription limits and does not require Claude Code to be running.
+3. **Claude Code — local terminal feed alternative:** select **Connect Claude Code**, then open a signed-in Claude Code session. Limits appear when Claude Code emits its status line; keep the session active for fresh feed readings.
+
 ## Optional API trackers
 
 Codex and Claude Code subscriptions work without API reporting keys. Add API trackers only when you want separate budget or balance information:
