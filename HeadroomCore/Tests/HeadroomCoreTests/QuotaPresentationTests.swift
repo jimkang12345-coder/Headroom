@@ -55,4 +55,18 @@ final class QuotaPresentationTests: XCTestCase {
         XCTAssertEqual(QuotaPresentation.menuPercentage(usage, windowID: "codex.secondary"), "—")
         XCTAssertEqual(QuotaPresentation.menuPercentage(usage, windowID: "other.primary"), "—")
     }
+
+    func testMenuBarShowsOnlyConnectedSubscriptions() {
+        let claudeOnly = QuotaPresentation.menuBarItems(codexConnected: false, claudeConnected: true, synthetic: false)
+        XCTAssertEqual(claudeOnly, .init(codex: false, claude: true))
+        XCTAssertFalse(claudeOnly.fallback)
+        XCTAssertEqual(QuotaPresentation.menuBarItems(codexConnected: true, claudeConnected: false, synthetic: false), .init(codex: true, claude: false))
+        XCTAssertEqual(QuotaPresentation.menuBarItems(codexConnected: true, claudeConnected: true, synthetic: false), .init(codex: true, claude: true))
+        // Synthetic samples show both without implying a provider connection.
+        XCTAssertEqual(QuotaPresentation.menuBarItems(codexConnected: false, claudeConnected: false, synthetic: true), .init(codex: true, claude: true))
+        // With nothing connected, a single neutral item keeps Headroom reachable.
+        let none = QuotaPresentation.menuBarItems(codexConnected: false, claudeConnected: false, synthetic: false)
+        XCTAssertEqual(none, .init(codex: false, claude: false))
+        XCTAssertTrue(none.fallback)
+    }
 }

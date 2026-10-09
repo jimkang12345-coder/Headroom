@@ -1,6 +1,22 @@
 import Foundation
 
 public enum QuotaPresentation {
+    public struct MenuBarItems: Equatable, Sendable {
+        public let codex: Bool
+        public let claude: Bool
+        /// A neutral item keeps Headroom reachable when no subscription is connected.
+        public var fallback: Bool { !codex && !claude }
+        public init(codex: Bool, claude: Bool) {
+            self.codex = codex
+            self.claude = claude
+        }
+    }
+
+    /// Disconnected subscriptions get no menu bar item; synthetic samples show both.
+    public static func menuBarItems(codexConnected: Bool, claudeConnected: Bool, synthetic: Bool) -> MenuBarItems {
+        MenuBarItems(codex: synthetic || codexConnected, claude: synthetic || claudeConnected)
+    }
+
     /// Show a requested window, or the window closest to exhaustion; unknown usage stays unknown.
     public static func menuPercentage(_ usage: SubscriptionUsage?, windowID: String? = nil) -> String {
         let selected: QuotaWindow?

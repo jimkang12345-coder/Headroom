@@ -10,6 +10,12 @@ struct MacMenuBarView: View {
     @Environment(\.openWindow) private var openWindow
     @State private var showsAPITrackers = false
 
+    private var menuBarItems: QuotaPresentation.MenuBarItems {
+        QuotaPresentation.menuBarItems(codexConnected: subscriptions.codexConnected,
+                                       claudeConnected: subscriptions.claudeConnected,
+                                       synthetic: subscriptions.isSyntheticMode)
+    }
+
     private var apiConnections: [Connection] {
         coordinator.activeConnections.filter { $0.providerId.kind != .subscription }
     }
@@ -38,10 +44,22 @@ struct MacMenuBarView: View {
                 .help("Refresh limits and added API trackers")
             }
 
-            subscriptionSummary("Codex", usage: subscriptions.codex,
-                                connected: subscriptions.isSyntheticMode || subscriptions.codexConnected, isClaude: false)
-            subscriptionSummary("Claude Code", usage: subscriptions.claude,
-                                connected: subscriptions.isSyntheticMode || subscriptions.claudeConnected, isClaude: true)
+            if menuBarItems.codex {
+                subscriptionSummary("Codex", usage: subscriptions.codex, isClaude: false)
+            }
+            if menuBarItems.claude {
+                subscriptionSummary("Claude Code", usage: subscriptions.claude, isClaude: true)
+            }
+            if menuBarItems.fallback {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("No subscription connected").font(.callout.weight(.semibold))
+                    Button("Connect Codex or Claude Code in Headroom", action: showMainWindow)
+                        .font(.caption).buttonStyle(.borderless)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(Color.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+            }
 
             Divider()
             DisclosureGroup("Optional API trackers\(apiConnections.isEmpty ? "" : " (\(apiConnections.count))")", isExpanded: $showsAPITrackers) {
@@ -108,14 +126,15 @@ struct MacMenuBarView: View {
         #endif
     }
 
-    private func subscriptionSummary(_ name: String, usage: SubscriptionUsage?, connected: Bool, isClaude: Bool) -> some View {
+    /// Only connected (or synthetic) subscriptions reach this summary.
+    private func subscriptionSummary(_ name: String, usage: SubscriptionUsage?, isClaude: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label(name, systemImage: isClaude ? "brain.head.profile" : "terminal.fill")
                     .font(.callout.weight(.semibold))
                 Spacer()
                 if usage?.windows.isEmpty != false {
-                    Text(connected ? "Awaiting limits" : "Not connected").font(.caption2).foregroundStyle(.secondary)
+                    Text("Awaiting limits").font(.caption2).foregroundStyle(.secondary)
                 }
             }
             if let usage, !usage.windows.isEmpty {
@@ -141,9 +160,6 @@ struct MacMenuBarView: View {
                      ? "Synthetic reading"
                      : "\(subscriptions.freshness(usage, isClaude: isClaude)) · \(usage.observedAt.formatted(date: .omitted, time: .shortened))")
                     .font(.caption2).foregroundStyle(.secondary)
-            } else if !connected {
-                Button("Connect in Headroom", action: showMainWindow)
-                    .font(.caption).buttonStyle(.borderless)
             }
         }
         .padding(10)

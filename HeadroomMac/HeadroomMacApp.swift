@@ -103,7 +103,7 @@ struct HeadroomMacApp: App {
             SidebarCommands()
         }
 
-        MenuBarExtra {
+        MenuBarExtra(isInserted: menuBarItem(\.codex)) {
             subscriptionMenu
         } label: {
             Text(menuTitle("Codex", usage: subscriptions.codex))
@@ -112,7 +112,7 @@ struct HeadroomMacApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        MenuBarExtra {
+        MenuBarExtra(isInserted: menuBarItem(\.claude)) {
             subscriptionMenu
         } label: {
             Text(menuTitle("Claude Code", usage: subscriptions.claude, windowID: "five_hour"))
@@ -120,6 +120,20 @@ struct HeadroomMacApp: App {
                 .help("Claude remaining capacity · 5-hour session")
         }
         .menuBarExtraStyle(.window)
+
+        MenuBarExtra("Headroom", systemImage: "gauge.with.dots.needle.33percent", isInserted: menuBarItem(\.fallback)) {
+            subscriptionMenu
+        }
+        .menuBarExtraStyle(.window)
+    }
+
+    /// Visibility follows connection state only; the constant binding ignores manual removal.
+    private func menuBarItem(_ item: KeyPath<QuotaPresentation.MenuBarItems, Bool>) -> Binding<Bool> {
+        let items = QuotaPresentation.menuBarItems(
+            codexConnected: subscriptions.codexConnected,
+            claudeConnected: subscriptions.claudeConnected,
+            synthetic: subscriptions.isSyntheticMode)
+        return .constant(items[keyPath: item])
     }
 
     private func menuTitle(_ name: String, usage: SubscriptionUsage?, windowID: String? = nil) -> String {
