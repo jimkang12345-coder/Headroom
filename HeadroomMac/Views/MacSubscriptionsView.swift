@@ -11,7 +11,7 @@ struct MacSubscriptionsView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Codex & Claude Code limits").font(.title2.bold())
-                    Text("Connect the coding subscriptions you use on this Mac.").foregroundStyle(.secondary)
+                    Text("Connect the coding subscriptions you use on this Mac, including every Claude account enabled in T3 Code.").foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } }
@@ -25,10 +25,29 @@ struct MacSubscriptionsView: View {
                         Label("Synthetic preview · connection actions are paused", systemImage: "flask")
                             .font(.caption).foregroundStyle(.orange)
                     }
+                    Button("Connect T3 Code accounts") { Task { await store.connectDiscovered() } }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(store.connectionsPaused || store.claudeDisconnecting)
+                    Text("Connects Codex, reads limits for each enabled T3 Claude account, and shows Grok’s local session cost. Hermes stays listed because it publishes no quota.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ForEach(store.extraClaude) { account in
+                        GroupBox {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label(account.label, systemImage: "brain.head.profile").font(.headline)
+                                if account.usage?.windows.isEmpty != false {
+                                    Text(account.connected ? (account.message ?? "Reading this Claude account’s limits…") : "Not connected")
+                                        .font(.callout).foregroundStyle(.secondary)
+                                }
+                                if let usage = account.usage, !usage.windows.isEmpty {
+                                    quota(usage, isClaude: true, failed: account.message != nil)
+                                }
+                            }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
                     GroupBox {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
-                                Label("Codex", systemImage: "terminal.fill").font(.headline)
+                                Label(store.codexLabel, systemImage: "terminal.fill").font(.headline)
                                 Spacer()
                                 if store.refreshing && store.codexConnected { ProgressView().controlSize(.small) }
                                 if store.codexConnected {
@@ -48,7 +67,7 @@ struct MacSubscriptionsView: View {
                     GroupBox {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
-                                Label("Claude Code", systemImage: "brain.head.profile").font(.headline)
+                                Label(store.claudeLabel, systemImage: "brain.head.profile").font(.headline)
                                 Spacer()
                                 if store.claudeDisconnecting {
                                     ProgressView().controlSize(.small)
@@ -64,7 +83,7 @@ struct MacSubscriptionsView: View {
                                         .disabled(store.connectionsPaused)
                                 }
                             }
-                            Text("Recommended: use your signed-in Claude Code subscription and a local status-line feed. Headroom installs its feed in Claude Code’s local settings and reads reported limits without an API key.")
+                            Text("Uses your signed-in Claude Code subscription. Headroom reads the 5-hour and weekly limits for that account. The local status line is kept when Claude Code reports one.")
                                 .font(.callout).foregroundStyle(.secondary)
                             if store.claudeConnected && !store.claudeUsesWebsite {
                                 Button("Open Claude Code") { store.openClaude() }
@@ -77,7 +96,7 @@ struct MacSubscriptionsView: View {
                             }
                             Text("Source: \(claudeSourceDescription)")
                                 .font(.caption).foregroundStyle(.secondary)
-                            Text("The Code feed updates when Claude Code emits its status line. It does not independently refresh desktop or website activity. Reported subscription metrics require a supported Claude Code version; context usage is separate.")
+                            Text("Account limits refresh about once a minute from the signed-in Claude Code account. The status line is still recorded when Claude Code emits it. Context usage is separate.")
                                 .font(.caption).foregroundStyle(.secondary)
                             DisclosureGroup("Optional Claude website source") {
                                 VStack(alignment: .leading, spacing: 10) {
@@ -95,7 +114,7 @@ struct MacSubscriptionsView: View {
                             if let usage = store.claude { quota(usage, isClaude: true, failed: store.claudeMessage != nil) }
                         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Text("Codex checks every 15 seconds, with slower retries on errors. The Claude Code feed is checked every 2 seconds; the optional website source checks every 30 seconds. Provider reporting can lag. API budgets are separate optional trackers.")
+                    Text("Codex checks every 15 seconds, with slower retries on errors. Claude account limits refresh about once a minute. Provider reporting can lag. API budgets are separate optional trackers.")
                         .font(.caption).foregroundStyle(.secondary)
                 }.padding(24)
             }
@@ -107,7 +126,8 @@ struct MacSubscriptionsView: View {
     private var claudeSourceDescription: String {
         if store.isSyntheticMode { return "Synthetic sample" }
         guard store.claudeConnected else { return "Not connected" }
-        return store.claudeUsesWebsite ? "Claude account usage page" : "Claude Code status-line feed"
+        if store.claudeUsesWebsite { return "Claude account usage page" }
+        return store.claudeAccountLimits ? "Claude account limits" : "Claude Code status-line feed"
     }
 
     private var claudeActionsDisabled: Bool {

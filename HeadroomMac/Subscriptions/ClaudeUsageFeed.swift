@@ -20,10 +20,17 @@ struct ClaudeUsageFeed {
         "/bin/bash " + quote(generation.appendingPathComponent(scriptName).path)
     }
 
-    init(home: URL = FileManager.default.homeDirectoryForCurrentUser, jqCandidates: [String] = Self.jqCandidates) {
-        directory = home.appendingPathComponent("Library/Application Support/Headroom/Subscriptions", isDirectory: true)
-        settings = home.appendingPathComponent(".claude/settings.json")
+    init(settings: URL, directory: URL, jqCandidates: [String] = Self.jqCandidates) {
+        self.settings = settings
+        self.directory = directory
         self.jqCandidates = jqCandidates
+    }
+
+    init(home: URL = FileManager.default.homeDirectoryForCurrentUser, jqCandidates: [String] = Self.jqCandidates) {
+        self.init(
+            settings: home.appendingPathComponent(".claude/settings.json"),
+            directory: home.appendingPathComponent("Library/Application Support/Headroom/Subscriptions", isDirectory: true),
+            jqCandidates: jqCandidates)
     }
 
     private func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of: "'", with: "'\"'\"'") + "'" }

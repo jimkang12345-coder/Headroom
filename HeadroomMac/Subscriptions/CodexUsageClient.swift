@@ -19,7 +19,7 @@ enum CodexUsageClient {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
-    static func read() throws -> SubscriptionUsage {
+    static func read(codexHome: URL? = nil) throws -> SubscriptionUsage {
         guard let executable else { throw UsageError.message("Install Codex on this Mac, sign in, then connect again.") }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
@@ -28,6 +28,7 @@ enum CodexUsageClient {
         var environment = ProcessInfo.processInfo.environment
         let toolDirectories = [(executable as NSString).deletingLastPathComponent, "/opt/homebrew/bin", "/usr/local/bin"]
         environment["PATH"] = (toolDirectories + [environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"]).joined(separator: ":")
+        if let codexHome { environment["CODEX_HOME"] = codexHome.path }
         process.environment = environment
         let input = Pipe(), output = Pipe()
         process.standardInput = input

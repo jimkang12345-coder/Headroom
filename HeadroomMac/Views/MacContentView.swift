@@ -119,10 +119,34 @@ struct MacContentView: View {
                         .fontWeight(selectedConnectionID == Self.overviewID ? .semibold : .regular)
                 }
                 NavigationLink(value: Self.codexID) {
-                    subscriptionRow("Codex", icon: "terminal.fill", usage: subscriptions.codex, connected: subscriptions.isSyntheticMode || subscriptions.codexConnected)
+                    subscriptionRow(subscriptions.codexLabel, icon: "terminal.fill", usage: subscriptions.codex, connected: subscriptions.isSyntheticMode || subscriptions.codexConnected)
                 }
                 NavigationLink(value: Self.claudeID) {
-                    subscriptionRow("Claude Code", icon: "brain.head.profile", usage: subscriptions.claude, connected: subscriptions.isSyntheticMode || subscriptions.claudeConnected)
+                    subscriptionRow(subscriptions.claudeLabel, icon: "brain.head.profile", usage: subscriptions.claude, connected: subscriptions.isSyntheticMode || subscriptions.claudeConnected)
+                }
+                ForEach(subscriptions.extraClaude) { account in
+                    subscriptionRow(account.label, icon: "brain.head.profile", usage: account.usage, connected: account.connected)
+                }
+                if subscriptions.grokConnected {
+                    Label {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Grok")
+                            Text(subscriptions.grokSpend.map { "Today \($0.todayUSD.formatted(.currency(code: "USD")))" } ?? "Local session cost")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "sparkles").foregroundStyle(.secondary)
+                    }
+                }
+                if let hermes = subscriptions.hermesLabel {
+                    Label {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(hermes)
+                            Text("No published quota").font(.caption).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "antenna.radiowaves.left.and.right").foregroundStyle(.secondary)
+                    }
                 }
                 Button("Manage limit connections") { isShowingSubscriptions = true }
                     .font(.caption)

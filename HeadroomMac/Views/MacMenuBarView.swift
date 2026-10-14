@@ -45,10 +45,27 @@ struct MacMenuBarView: View {
             }
 
             if menuBarItems.codex {
-                subscriptionSummary("Codex", usage: subscriptions.codex, isClaude: false)
+                subscriptionSummary(subscriptions.codexLabel, usage: subscriptions.codex, isClaude: false)
             }
             if menuBarItems.claude {
-                subscriptionSummary("Claude Code", usage: subscriptions.claude, isClaude: true)
+                subscriptionSummary(subscriptions.claudeLabel, usage: subscriptions.claude, isClaude: true)
+            }
+            ForEach(subscriptions.extraClaude.filter(\.connected)) { account in
+                subscriptionSummary(account.label, usage: account.usage, isClaude: true)
+            }
+            if subscriptions.grokConnected, let spend = subscriptions.grokSpend {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Grok", systemImage: "sparkles").font(.callout.weight(.semibold))
+                    Text("Today \(spend.todayUSD.formatted(.currency(code: "USD"))) · 7 days \(spend.weekUSD.formatted(.currency(code: "USD")))")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text("Recorded session cost, not remaining quota.").font(.caption2).foregroundStyle(.secondary)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+            }
+            if let hermes = subscriptions.hermesLabel {
+                Text("\(hermes) · no published quota").font(.caption).foregroundStyle(.secondary)
             }
             if menuBarItems.fallback {
                 VStack(alignment: .leading, spacing: 6) {

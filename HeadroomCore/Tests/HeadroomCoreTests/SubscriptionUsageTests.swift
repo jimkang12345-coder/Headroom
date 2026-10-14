@@ -22,6 +22,36 @@ final class SubscriptionUsageTests: XCTestCase {
         XCTAssertEqual(result.windows.map(\.remainingPercent), [75, 0])
         XCTAssertNil(result.windows.first?.resetsAt)
     }
+
+    func testClaudeOAuthUsesLimitPercentsAndParsesResets() throws {
+        let payload = #"{"five_hour":{"utilization":99,"resets_at":"2020-01-01T00:00:00Z"},"seven_day":{"utilization":1},"limits":[{"kind":"session","percent":15,"resets_at":"2026-10-14T22:49:59.968016+00:00"},{"kind":"weekly_all","percent":0,"resets_at":1800000000},{"kind":"weekly_scoped","percent":40}]}"#
+        let usage = try SubscriptionUsage.claudeOAuth(Data(payload.utf8), now: Date(timeIntervalSince1970: 1_800_000_000))
+        XCTAssertEqual(usage.windows.map(\.id), ["five_hour", "seven_day"])
+        XCTAssertEqual(usage.windows.map(\.usedPercent), [15, 0])
+        XCTAssertEqual(usage.windows.map(\.remainingPercent), [85, 100])
+        let base = ISO8601DateFormatter()
+        base.formatOptions = [.withInternetDateTime]
+        let expectedReset = base.date(from: "2026-10-14T22:49:59Z")!.addingTimeInterval(0.968)
+        XCTAssertEqual(usage.windows[0].resetsAt!.timeIntervalSince1970, expectedReset.timeIntervalSince1970, accuracy: 0.0005)
+        XCTAssertEqual(usage.windows[1].resetsAt, Date(timeIntervalSince1970: 1_800_000_000))
+        XCTAssertTrue(usage.isComplete)
+    }
+
+    func testClaudeOAuthFallsBackToUtilizationAndRejectsOutOfRange() throws {
+        let usage = try SubscriptionUsage.claudeOAuth(Data(#"{"five_hour":{"utilization":15},"seven_day":{"utilization":150}}"#.utf8))
+        XCTAssertEqual(usage.windows.map(\.usedPercent), [15])
+        XCTAssertEqual(usage.unavailableWindowIDs, ["seven_day"])
+        XCTAssertFalse(usage.isComplete)
+        XCTAssertTrue(try SubscriptionUsage.claudeOAuth(Data("{}".utf8)).windows.isEmpty)
+        XCTAssertThrowsError(try SubscriptionUsage.claudeOAuth(Data("bad".utf8)))
+    }
+
+    func testClaudeCredentialServiceUsesTheDefaultNameOrPathHash() {
+        let standard = URL(fileURLWithPath: "/tmp/default-claude")
+        XCTAssertEqual(ClaudeCredentialLocator.service(configDirectory: standard, defaultDirectory: standard), "Claude Code-credentials")
+        let other = URL(fileURLWithPath: "/tmp/claude-home")
+        XCTAssertEqual(ClaudeCredentialLocator.service(configDirectory: other, defaultDirectory: standard), "Claude Code-credentials-ee668b60")
+    }
     func testInvalidValuesAndLegacyFallback() throws {
         let result = try SubscriptionUsage.codex(Data(#"{"rateLimitsByLimitId":{},"rateLimits":{"primary":{"usedPercent":101},"secondary":{"usedPercent":0}}}"#.utf8))
         XCTAssertEqual(result.windows.count, 1)
