@@ -56,4 +56,98 @@ final class ClaudeWebsiteSessionPolicyTests: XCTestCase {
         XCTAssertFalse(session.acceptsReading(from: oldEpoch))
         XCTAssertTrue(session.acceptsReading(from: session.epoch))
     }
+
+    let start = Date(timeIntervalSince1970: 2000000000)
+    private func next(_ schedule: inout ClaudeWebsiteRefreshSchedule, _ offset: TimeInterval, loading: Bool = false,
+                      usagePage: Bool = true, signingIn: Bool = false, forced: Bool = false) -> ClaudeWebsiteRefreshSchedule.Step {
+        schedule.next(at: start.addingTimeInterval(offset), isLoading: loading, onUsagePage: usagePage, signingIn: signingIn, forced: forced)
+    }
+
+    func testSuccessfulReadSchedulesNextReload() {
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        XCTAssertEqual(next(&schedule, 0, usagePage: false), .reload)
+        schedule.beginLoad(at: start)
+        XCTAssertEqual(next(&schedule, 1, loading: true), .wait)
+        schedule.finishLoad(onUsagePage: true, signingIn: false, at: start.addingTimeInterval(2))
+        XCTAssertEqual(next(&schedule, 2), .read)
+        schedule.beginRead(at: start.addingTimeInterval(2))
+        XCTAssertEqual(next(&schedule, 3), .wait)
+        schedule.finishRead(succeeded: true, at: start.addingTimeInterval(3))
+        XCTAssertEqual(next(&schedule, 32), .wait)
+        XCTAssertEqual(next(&schedule, 33), .reload)
+    }
+
+    func testUnansweredReadDoesNotStopRefreshes() {
+        // A suspended page may never answer the script. Abandon the reply, not the refresh loop.
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        schedule.beginLoad(at: start)
+        schedule.finishLoad(onUsagePage: true, signingIn: false, at: start)
+        schedule.beginRead(at: start)
+        XCTAssertEqual(next(&schedule, 10), .wait)
+        XCTAssertEqual(next(&schedule, 11), .read)
+        schedule.beginRead(at: start.addingTimeInterval(11))
+        XCTAssertEqual(next(&schedule, 26), .timedOut)
+        XCTAssertEqual(schedule.failures, 1)
+        XCTAssertEqual(next(&schedule, 85), .wait)
+        XCTAssertEqual(next(&schedule, 86), .reload)
+    }
+
+    func testUnrenderedPageTimesOutWithBackoff() {
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        var offset: TimeInterval = 0
+        for delay in [60.0, 120, 240, 300, 300] {
+            XCTAssertEqual(next(&schedule, offset), .reload)
+            schedule.beginLoad(at: start.addingTimeInterval(offset))
+            schedule.finishLoad(onUsagePage: true, signingIn: false, at: start.addingTimeInterval(offset))
+            XCTAssertEqual(next(&schedule, offset + 1), .read)
+            schedule.beginRead(at: start.addingTimeInterval(offset + 1))
+            schedule.finishRead(succeeded: false, at: start.addingTimeInterval(offset + 1))
+            XCTAssertEqual(next(&schedule, offset + 2), .read)
+            XCTAssertEqual(next(&schedule, offset + 26), .timedOut)
+            XCTAssertEqual(schedule.nextLoad.timeIntervalSince(start.addingTimeInterval(offset + 26)), delay)
+            offset = schedule.nextLoad.timeIntervalSince(start)
+        }
+    }
+
+    func testOffscreenRedirectAwayFromUsageIsRetried() {
+        // claude.ai can redirect or route away from the usage page. Unless someone can see
+        // the connection window, that page is replaced on the failure schedule.
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        schedule.beginLoad(at: start)
+        schedule.finishLoad(onUsagePage: false, signingIn: false, at: start)
+        XCTAssertEqual(schedule.failures, 1)
+        XCTAssertEqual(next(&schedule, 59, usagePage: false), .wait)
+        XCTAssertEqual(next(&schedule, 60, usagePage: false), .reload)
+
+        schedule.beginLoad(at: start.addingTimeInterval(60))
+        schedule.finishLoad(onUsagePage: true, signingIn: false, at: start.addingTimeInterval(61))
+        XCTAssertEqual(next(&schedule, 70, usagePage: false), .wait)
+        XCTAssertEqual(next(&schedule, 87, usagePage: false), .timedOut)
+    }
+
+    func testVisibleSignInFormIsNotReloaded() {
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        schedule.beginLoad(at: start)
+        schedule.finishLoad(onUsagePage: false, signingIn: true, at: start)
+        XCTAssertEqual(schedule.failures, 0)
+        XCTAssertEqual(next(&schedule, 600, usagePage: false, signingIn: true), .wait)
+        XCTAssertEqual(next(&schedule, 600, usagePage: true, signingIn: true), .reload)
+    }
+
+    func testForcedRefreshThrottleAndResume() {
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        schedule.beginLoad(at: start)
+        schedule.finishLoad(onUsagePage: true, signingIn: false, at: start)
+        schedule.beginRead(at: start)
+        schedule.finishRead(succeeded: true, at: start)
+        XCTAssertEqual(next(&schedule, 4, forced: true), .wait)
+        XCTAssertEqual(next(&schedule, 5, forced: true), .reload)
+
+        schedule.beginLoad(at: start.addingTimeInterval(5))
+        schedule.pause()
+        schedule.resume()
+        XCTAssertEqual(next(&schedule, 6, loading: true), .reload)
+        schedule.fail(at: start.addingTimeInterval(6))
+        XCTAssertEqual(next(&schedule, 7), .wait)
+    }
 }
