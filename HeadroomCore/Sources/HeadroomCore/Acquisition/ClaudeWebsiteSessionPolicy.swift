@@ -22,15 +22,22 @@ public enum ClaudeWebsiteNavigationPolicy {
 /// an unanswered script or a route away from the usage page delays readings instead of ending them.
 public struct ClaudeWebsiteRefreshSchedule: Sendable {
     public enum Step: Equatable, Sendable { case wait, read, reload, timedOut }
+    /// Each reload renders the whole site, so readings slow down while no Headroom window is on screen.
+    public static let watchedInterval: TimeInterval = 30
+    public static let hiddenInterval: TimeInterval = 120
     public private(set) var failures = 0
+    /// Earliest reload after a failure.
     public private(set) var nextLoad: Date = .distantPast
     private var lastLoad: Date = .distantPast
+    private var lastReading: Date = .distantPast
     private var awaitingSnapshot = false
     private var readStarted: Date?
     public init() {}
 
     /// `signingIn` means the connection window is on screen, so another claude.ai page may be a sign-in form.
-    public mutating func next(at now: Date, isLoading: Bool, onUsagePage: Bool, signingIn: Bool, forced: Bool = false) -> Step {
+    /// `watched` means any Headroom window is on screen.
+    public mutating func next(at now: Date, isLoading: Bool, onUsagePage: Bool, signingIn: Bool, watched: Bool,
+                              forced: Bool = false) -> Step {
         if let readStarted {
             guard now.timeIntervalSince(readStarted) > 10 else { return .wait }
             self.readStarted = nil
@@ -44,7 +51,9 @@ public struct ClaudeWebsiteRefreshSchedule: Sendable {
         }
         // Don't reload a sign-in form while the user is entering credentials.
         if signingIn && !onUsagePage { return .wait }
-        return now >= nextLoad || (forced && now.timeIntervalSince(lastLoad) >= 5) ? .reload : .wait
+        let interval = watched ? Self.watchedInterval : Self.hiddenInterval
+        let due = now >= nextLoad && now.timeIntervalSince(lastReading) >= interval
+        return due || (forced && now.timeIntervalSince(lastLoad) >= 5) ? .reload : .wait
     }
     public mutating func beginLoad(at now: Date) {
         lastLoad = now
@@ -67,7 +76,8 @@ public struct ClaudeWebsiteRefreshSchedule: Sendable {
         guard succeeded else { return }
         awaitingSnapshot = false
         failures = 0
-        nextLoad = now.addingTimeInterval(30)
+        nextLoad = .distantPast
+        lastReading = now
     }
     public mutating func fail(at now: Date) {
         awaitingSnapshot = false
@@ -82,6 +92,7 @@ public struct ClaudeWebsiteRefreshSchedule: Sendable {
     public mutating func resume() {
         pause()
         nextLoad = .distantPast
+        lastReading = .distantPast
     }
 }
 

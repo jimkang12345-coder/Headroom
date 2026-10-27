@@ -212,11 +212,16 @@ final class SubscriptionStore: ObservableObject {
         let age = max(0, displayTime.timeIntervalSince(usage.observedAt))
         let resetPassed = usage.windows.contains { $0.resetsAt.map { $0 <= displayTime } ?? false }
         if resetPassed { return "Reset passed · awaiting provider update" }
-        if age > 120 {
+        if age > staleAge(isClaude: isClaude) {
             return isClaude ? (claudeUsesWebsite ? "Claude website update delayed" : "Awaiting fresh Claude Code data") : "Last known reading · refresh delayed"
         }
         if !usage.isComplete { return "Partial reading · some limits unavailable" }
         return isClaude ? (claudeUsesWebsite ? "Checked Claude account usage" : "Claude Code feed received") : "Checked with Codex"
+    }
+
+    /// Hidden website readings arrive every two minutes plus load time, so they age further before counting as delayed.
+    func staleAge(isClaude: Bool) -> TimeInterval {
+        isClaude && claudeUsesWebsite ? ClaudeWebsiteRefreshSchedule.hiddenInterval + 60 : 120
     }
 
     func openClaude() {

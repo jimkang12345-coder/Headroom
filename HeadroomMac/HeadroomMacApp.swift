@@ -139,7 +139,7 @@ struct HeadroomMacApp: App {
     private func menuTitle(_ name: String, usage: SubscriptionUsage?, windowID: String? = nil) -> String {
         if subscriptions.isSyntheticMode { return "\(name) Demo" }
         let stale = usage.map {
-            subscriptions.displayTime.timeIntervalSince($0.observedAt) > 120 ||
+            subscriptions.displayTime.timeIntervalSince($0.observedAt) > subscriptions.staleAge(isClaude: name != "Codex") ||
             $0.windows.contains { $0.resetsAt.map { $0 <= subscriptions.displayTime } ?? false }
         } ?? false
         let failed = name == "Codex" ? subscriptions.codexMessage != nil : subscriptions.claudeMessage != nil

@@ -127,7 +127,7 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     func tick(force: Bool = false) {
         guard enabled else { return }
         switch schedule.next(at: Date(), isLoading: webView?.isLoading ?? false, onUsagePage: isUsagePage(webView?.url),
-                             signingIn: connectionWindowOnScreen, forced: force) {
+                             signingIn: connectionWindowOnScreen, watched: headroomWindowOnScreen, forced: force) {
         case .wait: break
         case .read: readPage()
         case .reload: reload()
@@ -141,6 +141,11 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     private var connectionWindowOnScreen: Bool {
         guard let window, window.isVisible else { return false }
         return window.occlusionState.contains(.visible)
+    }
+    /// Regular Headroom windows only; the always-present menu bar items don't count.
+    /// Opening the menu bar panel forces its own refresh.
+    private var headroomWindowOnScreen: Bool {
+        NSApp.windows.contains { $0.level == .normal && $0.isVisible && $0.occlusionState.contains(.visible) }
     }
     private func reload() {
         guard enabled else { return }

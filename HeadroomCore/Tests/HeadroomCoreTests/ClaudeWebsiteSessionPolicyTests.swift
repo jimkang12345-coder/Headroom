@@ -59,8 +59,10 @@ final class ClaudeWebsiteSessionPolicyTests: XCTestCase {
 
     let start = Date(timeIntervalSince1970: 2000000000)
     private func next(_ schedule: inout ClaudeWebsiteRefreshSchedule, _ offset: TimeInterval, loading: Bool = false,
-                      usagePage: Bool = true, signingIn: Bool = false, forced: Bool = false) -> ClaudeWebsiteRefreshSchedule.Step {
-        schedule.next(at: start.addingTimeInterval(offset), isLoading: loading, onUsagePage: usagePage, signingIn: signingIn, forced: forced)
+                      usagePage: Bool = true, signingIn: Bool = false, watched: Bool = true,
+                      forced: Bool = false) -> ClaudeWebsiteRefreshSchedule.Step {
+        schedule.next(at: start.addingTimeInterval(offset), isLoading: loading, onUsagePage: usagePage,
+                      signingIn: signingIn, watched: watched, forced: forced)
     }
 
     func testSuccessfulReadSchedulesNextReload() {
@@ -125,6 +127,24 @@ final class ClaudeWebsiteSessionPolicyTests: XCTestCase {
         XCTAssertEqual(next(&schedule, 87, usagePage: false), .timedOut)
     }
 
+    func testHiddenReadingsRepeatEveryTwoMinutes() {
+        var schedule = ClaudeWebsiteRefreshSchedule()
+        schedule.beginLoad(at: start)
+        schedule.finishLoad(onUsagePage: true, signingIn: false, at: start)
+        schedule.beginRead(at: start)
+        schedule.finishRead(succeeded: true, at: start)
+        XCTAssertEqual(next(&schedule, 30, watched: false), .wait)
+        XCTAssertEqual(next(&schedule, 119, watched: false), .wait)
+        XCTAssertEqual(next(&schedule, 120, watched: false), .reload)
+        // A window coming on screen restores the faster cadence at once.
+        XCTAssertEqual(next(&schedule, 30, watched: true), .reload)
+        XCTAssertEqual(next(&schedule, 29, watched: true), .wait)
+        // Failure backoff is never shortened by the cadence.
+        schedule.fail(at: start.addingTimeInterval(120))
+        XCTAssertEqual(next(&schedule, 179, watched: true), .wait)
+        XCTAssertEqual(next(&schedule, 180, watched: false), .reload)
+    }
+
     func testVisibleSignInFormIsNotReloaded() {
         var schedule = ClaudeWebsiteRefreshSchedule()
         schedule.beginLoad(at: start)
@@ -146,7 +166,7 @@ final class ClaudeWebsiteSessionPolicyTests: XCTestCase {
         schedule.beginLoad(at: start.addingTimeInterval(5))
         schedule.pause()
         schedule.resume()
-        XCTAssertEqual(next(&schedule, 6, loading: true), .reload)
+        XCTAssertEqual(next(&schedule, 6, loading: true, watched: false), .reload)
         schedule.fail(at: start.addingTimeInterval(6))
         XCTAssertEqual(next(&schedule, 7), .wait)
     }
