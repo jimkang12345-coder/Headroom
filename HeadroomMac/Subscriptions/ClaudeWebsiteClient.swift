@@ -17,11 +17,8 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     private let removeDataStore: (UUID) async throws -> Void
     private var webView: WKWebView?
     private var window: NSWindow?
-    private var lastLoad = Date.distantPast
-    private var nextLoad = Date.distantPast
-    private var failures = 0
-    private var awaitingSnapshot = false
-    private var reading = false
+    private var schedule = ClaudeWebsiteRefreshSchedule()
+    private var readToken: UInt64 = 0
     private let page = URL(string: "https://claude.ai/settings/usage")!
 
     init(dataStoreIdentifier: UUID = UUID(uuidString: "5CD0C2A0-1234-4500-A000-000000000001")!,
@@ -33,10 +30,8 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
 
     func setEnabled(_ value: Bool) {
         guard session.setEnabled(value) else { return }
-        awaitingSnapshot = false
-        reading = false
-        if !value { webView?.stopLoading() }
-        else { nextLoad = .distantPast; tick() }
+        if !value { schedule.pause(); webView?.stopLoading() }
+        else { schedule.resume(); tick() }
     }
 
     /// Destroys the browser before deleting its dedicated persistent data store.
@@ -62,11 +57,7 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     private func releaseBrowser() {
-        awaitingSnapshot = false
-        reading = false
-        lastLoad = .distantPast
-        nextLoad = .distantPast
-        failures = 0
+        schedule = ClaudeWebsiteRefreshSchedule()
         webView?.stopLoading()
         webView?.navigationDelegate = nil
         webView?.uiDelegate = nil
@@ -105,6 +96,8 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
         let config = WKWebViewConfiguration()
         // Dedicated persistent store; independent of Safari/Chrome and other app browsing.
         config.websiteDataStore = WKWebsiteDataStore(forIdentifier: dataStoreIdentifier)
+        // The view is usually off screen or windowless. A suspended page never renders new readings.
+        config.preferences.inactiveSchedulingPolicy = .none
         let view = WKWebView(frame: NSRect(x: 0, y: 0, width: 1050, height: 750), configuration: config)
         view.navigationDelegate = self
         view.uiDelegate = self
@@ -133,45 +126,49 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
     func tick(force: Bool = false) {
         guard enabled else { return }
-        let now = Date()
-        if awaitingSnapshot {
-            if now.timeIntervalSince(lastLoad) > 25 {
-                awaitingSnapshot = false
-                fail("Claude usage page did not load. Open the Claude website connection to check your sign-in.")
-            } else if webView?.isLoading == false { readPage() }
-            return
+        switch schedule.next(at: Date(), isLoading: webView?.isLoading ?? false, onUsagePage: isUsagePage(webView?.url),
+                             signingIn: connectionWindowOnScreen, watched: headroomWindowOnScreen, forced: force) {
+        case .wait: break
+        case .read: readPage()
+        case .reload: reload()
+        case .timedOut: onStatus?("Claude usage page did not load. Open the Claude website connection to check your sign-in.")
         }
-        // Don't reload a sign-in form while the user is entering credentials.
-        if let url = webView?.url, !isUsagePage(url) {
-            return
-        }
-        if !reading, now >= nextLoad || (force && now.timeIntervalSince(lastLoad) >= 5) { reload() }
     }
     private func isUsagePage(_ url: URL?) -> Bool {
         ClaudeWebsiteNavigationPolicy.isUsagePage(url)
     }
+    /// Only a window the user can see may hold a sign-in form in progress.
+    private var connectionWindowOnScreen: Bool {
+        guard let window, window.isVisible else { return false }
+        return window.occlusionState.contains(.visible)
+    }
+    /// Regular Headroom windows only; the always-present menu bar items don't count.
+    /// Opening the menu bar panel forces its own refresh.
+    private var headroomWindowOnScreen: Bool {
+        NSApp.windows.contains { $0.level == .normal && $0.isVisible && $0.occlusionState.contains(.visible) }
+    }
     private func reload() {
         guard enabled else { return }
-        lastLoad = Date()
-        awaitingSnapshot = true
+        schedule.beginLoad(at: Date())
         prepare().load(URLRequest(url: page, cachePolicy: .reloadIgnoringLocalCacheData))
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         guard enabled, self.webView === webView else { return }
-        if isUsagePage(webView.url) {
-            // React may not have rendered yet; the regular tick retries within the load deadline.
-            awaitingSnapshot = true
-            lastLoad = Date()
-            readPage()
-        } else {
-            awaitingSnapshot = false
-            onStatus?("Sign in to Claude in the website connection, then open Settings → Usage.")
-        }
+        let onUsagePage = isUsagePage(webView.url)
+        schedule.finishLoad(onUsagePage: onUsagePage, signingIn: connectionWindowOnScreen, at: Date())
+        if onUsagePage { readPage() }
+        else { onStatus?("Sign in to Claude in the website connection, then open Settings → Usage.") }
     }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         guard enabled, self.webView === webView, (error as NSError).code != NSURLErrorCancelled else { return }
-        awaitingSnapshot = false
-        fail("Claude website is unavailable. Retrying automatically; your last reading is preserved.")
+        schedule.fail(at: Date())
+        onStatus?("Claude website is unavailable. Retrying automatically; your last reading is preserved.")
+    }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        guard enabled, self.webView === webView else { return }
+        // The view stays blank until it loads again.
+        schedule.fail(at: Date())
+        onStatus?("Claude usage page stopped. Retrying automatically; your last reading is preserved.")
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
@@ -209,23 +206,18 @@ final class ClaudeWebsiteClient: NSObject, WKNavigationDelegate, WKUIDelegate {
         return nil
     }
     private func readPage() {
-        guard enabled, !reading, isUsagePage(webView?.url), let webView else { return }
-        reading = true
+        guard enabled, isUsagePage(webView?.url), let webView else { return }
+        // A reply from an abandoned or superseded read is ignored.
+        readToken &+= 1
+        let token = readToken
         let expected = session.epoch
+        schedule.beginRead(at: Date())
         webView.evaluateJavaScript("document.body.innerText") { [weak self] value, error in
-            guard let self, self.session.acceptsReading(from: expected) else { return }
-            self.reading = false
-            guard error == nil, let text = value as? String,
-                  let usage = try? SubscriptionUsage.claudeWebsite(text) else { return }
-            self.awaitingSnapshot = false
-            self.failures = 0
-            self.nextLoad = Date().addingTimeInterval(30)
-            self.onUsage?(usage)
+            guard let self, self.session.acceptsReading(from: expected), token == self.readToken else { return }
+            let text = error == nil ? value as? String : nil
+            let usage = text.flatMap { try? SubscriptionUsage.claudeWebsite($0) }
+            self.schedule.finishRead(succeeded: usage != nil, at: Date())
+            if let usage { self.onUsage?(usage) }
         }
-    }
-    private func fail(_ message: String) {
-        failures = min(failures + 1, 4)
-        nextLoad = Date().addingTimeInterval(min(300, 30 * pow(2, Double(failures))))
-        onStatus?(message)
     }
 }

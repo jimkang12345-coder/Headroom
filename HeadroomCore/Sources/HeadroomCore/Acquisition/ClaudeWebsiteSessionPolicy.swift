@@ -18,6 +18,84 @@ public enum ClaudeWebsiteNavigationPolicy {
     }
 }
 
+/// Paces reloads of the account usage page. Every wait has a deadline, so a suspended page,
+/// an unanswered script or a route away from the usage page delays readings instead of ending them.
+public struct ClaudeWebsiteRefreshSchedule: Sendable {
+    public enum Step: Equatable, Sendable { case wait, read, reload, timedOut }
+    /// Each reload renders the whole site, so readings slow down while no Headroom window is on screen.
+    public static let watchedInterval: TimeInterval = 30
+    public static let hiddenInterval: TimeInterval = 120
+    public private(set) var failures = 0
+    /// Earliest reload after a failure.
+    public private(set) var nextLoad: Date = .distantPast
+    private var lastLoad: Date = .distantPast
+    private var lastReading: Date = .distantPast
+    private var awaitingSnapshot = false
+    private var readStarted: Date?
+    public init() {}
+
+    /// `signingIn` means the connection window is on screen, so another claude.ai page may be a sign-in form.
+    /// `watched` means any Headroom window is on screen.
+    public mutating func next(at now: Date, isLoading: Bool, onUsagePage: Bool, signingIn: Bool, watched: Bool,
+                              forced: Bool = false) -> Step {
+        if let readStarted {
+            guard now.timeIntervalSince(readStarted) > 10 else { return .wait }
+            self.readStarted = nil
+        }
+        if awaitingSnapshot {
+            guard now.timeIntervalSince(lastLoad) <= 25 else {
+                fail(at: now)
+                return .timedOut
+            }
+            return isLoading || !onUsagePage ? .wait : .read
+        }
+        // Don't reload a sign-in form while the user is entering credentials.
+        if signingIn && !onUsagePage { return .wait }
+        let interval = watched ? Self.watchedInterval : Self.hiddenInterval
+        let due = now >= nextLoad && now.timeIntervalSince(lastReading) >= interval
+        return due || (forced && now.timeIntervalSince(lastLoad) >= 5) ? .reload : .wait
+    }
+    public mutating func beginLoad(at now: Date) {
+        lastLoad = now
+        awaitingSnapshot = true
+        readStarted = nil
+    }
+    public mutating func finishLoad(onUsagePage: Bool, signingIn: Bool, at now: Date) {
+        if onUsagePage {
+            // React may not have rendered yet; reads repeat within the load deadline.
+            awaitingSnapshot = true
+            lastLoad = now
+        } else {
+            awaitingSnapshot = false
+            if !signingIn { fail(at: now) }
+        }
+    }
+    public mutating func beginRead(at now: Date) { readStarted = now }
+    public mutating func finishRead(succeeded: Bool, at now: Date) {
+        readStarted = nil
+        guard succeeded else { return }
+        awaitingSnapshot = false
+        failures = 0
+        nextLoad = .distantPast
+        lastReading = now
+    }
+    public mutating func fail(at now: Date) {
+        awaitingSnapshot = false
+        readStarted = nil
+        failures = min(failures + 1, 4)
+        nextLoad = now.addingTimeInterval(min(300, 30 * pow(2, Double(failures))))
+    }
+    public mutating func pause() {
+        awaitingSnapshot = false
+        readStarted = nil
+    }
+    public mutating func resume() {
+        pause()
+        nextLoad = .distantPast
+        lastReading = .distantPast
+    }
+}
+
 /// Invalidates outstanding readings when a session pauses or is deleted.
 /// A failed deletion keeps reconnection blocked until deletion succeeds.
 public struct ClaudeWebsiteSessionLifecycle: Sendable {
